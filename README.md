@@ -4,7 +4,7 @@
 
 ---
 
-## What is Sentinel?
+## What is Sentinel ?
 
 Sentinel is an ecosystem of tools that work together to collect, store, and surface behavioral data on Discord users. You choose who to track. Sentinel handles everything else — logging when they come online, what they play, who they talk to, what they delete, and how their patterns change over time.
 
