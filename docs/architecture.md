@@ -79,7 +79,7 @@ A connectivity bridge for Windows users. It:
 
 The browser dashboard. It:
 
-- Is a Next.js 15 app that can be self-hosted or used from [sentinel-web-v1.vercel.app](https://sentinel-web-v1.vercel.app)
+- Is a Next.js 15 app that can be self-hosted or used from [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app)
 - Stores the selfbot URL and token in the browser's localStorage
 - Makes all API calls directly from the browser to the selfbot URL
 - Provides the same analytics, timelines, insights, and alerts as the plugin

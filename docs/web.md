@@ -2,7 +2,7 @@
 
 The Sentinel web dashboard is a Next.js application that gives you full access to your selfbot's data from any browser — no Vencord, no Discord client required.
 
-The hosted version is available at **[sentinel-web-v1.vercel.app](https://sentinel-web-v1.vercel.app)**.
+The hosted version is available at **[sentinel-panel.vercel.app](https://sentinel-panel.vercel.app)**.
 
 ---
 
@@ -19,7 +19,7 @@ This means:
 
 ## Using the Hosted App
 
-1. Go to [sentinel-web-v1.vercel.app](https://sentinel-web-v1.vercel.app)
+1. Go to [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app)
 2. Click **Settings** in the sidebar
 3. Enter your **Sentinel API URL** (e.g., `http://localhost:48923` or `https://your-domain.com`)
 4. Enter your **API Token** (the `API_AUTH_TOKEN` from your selfbot's `.env`)
