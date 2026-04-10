@@ -128,7 +128,7 @@ cd /path/to/Vencord && pnpm build
 **Plugin doesn't appear in Settings → Plugins**
 
 - Make sure you ran `pnpm build` after copying the plugin
-- Check that the folder is named exactly `sentinel-ui` inside Vencord's `userplugins` directory
+- Check that the folder is named exactly `sentinel-ui` inside Vencord's `plugins` directory
 - Restart Discord after building
 
 **Real-time feed not updating**
