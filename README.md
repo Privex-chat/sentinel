@@ -66,6 +66,8 @@ The selfbot is the core. Everything else is a UI layer or a connectivity helper 
 | [API Reference](docs/api.md) | Every selfbot API endpoint |
 | [Supabase / Cloud](docs/supabase.md) | Configuring cloud backup and sync |
 | [Sentinel Bot](docs/bot.md) | The planned community intelligence bot (roadmap) |
+| [Future Improvements](docs/future-improvements.md) | Planned features and roadmap |
+
 
 ---
 
