@@ -45,6 +45,7 @@ Copy-Item -Recurse sentinel-plugin\plugins\sentinel-ui "$env:APPDATA\Vencord\src
 ```bash
 cd /path/to/Vencord
 pnpm build
+pnpm inject
 ```
 
 If you're running Vencord in dev mode (`pnpm dev`), it rebuilds automatically when you copy files.
@@ -110,7 +111,7 @@ Pull the latest plugin code and re-copy the folder:
 cd sentinel-plugin
 git pull
 cp -r plugins/sentinel-ui /path/to/Vencord/src/plugins/sentinel-ui
-cd /path/to/Vencord && pnpm build
+cd /path/to/Vencord && pnpm build && pnpm inject
 ```
 
 ---
@@ -127,7 +128,7 @@ cd /path/to/Vencord && pnpm build
 
 **Plugin doesn't appear in Settings → Plugins**
 
-- Make sure you ran `pnpm build` after copying the plugin
+- Make sure you ran `pnpm build` and `pnpm inject` after copying the plugin
 - Check that the folder is named exactly `sentinel-ui` inside Vencord's `plugins` directory
 - Restart Discord after building
 
