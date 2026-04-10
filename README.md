@@ -19,7 +19,7 @@ Everything runs on your own infrastructure. No data leaves your setup unless you
 | [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) | The data collector. Runs as a background process using a Discord user account token. Stores everything locally in SQLite and exposes a REST/SSE API. | Stable |
 | [sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) | Vencord plugin that renders the full dashboard inside Discord's settings panel. Talks to the selfbot API in real time. | Stable |
 | [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Lightweight Windows proxy for users running the selfbot on an external server (Railway, Fly.io, etc.). Runs silently on boot and forwards requests from the plugin. | Stable |
-| [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Next.js web dashboard. Same analytics and monitoring as the plugin, accessible from any browser. Hosted at [sentinel-web-v1.vercel.app](https://sentinel-web-v1.vercel.app). | Stable |
+| [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Next.js web dashboard. Same analytics and monitoring as the plugin, accessible from any browser. Hosted at [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app). | Stable |
 | [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Proper Discord bot for server staff. Multi-server shared intelligence network — no user token required. | Planned |
 
 ---
