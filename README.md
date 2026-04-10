@@ -89,7 +89,7 @@ cp .env.example .env
 npm run build && npm start
 ```
 
-Then install the Vencord plugin from `sentinel-plugin/userplugins/sentinel-ui/` and point it at `http://localhost:48923`.
+Then install the Vencord plugin from `sentinel-plugin/plugins/sentinel-ui/` and point it at `http://localhost:48923`.
 
 Full instructions: [docs/selfbot.md](docs/selfbot.md) and [docs/plugin.md](docs/plugin.md)
 

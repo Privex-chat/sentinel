@@ -20,9 +20,9 @@ The location depends on how you installed Vencord:
 
 | Install type | Path |
 |---|---|
-| Standard (Windows) | `%APPDATA%\Vencord\src\userplugins\` |
-| Standard (Linux/macOS) | `~/.config/Vencord/src/userplugins/` |
-| Dev install (cloned repo) | `Vencord/src/userplugins/` |
+| Standard (Windows) | `%APPDATA%\Vencord\src\plugins\` |
+| Standard (Linux/macOS) | `~/.config/Vencord/src/plugins/` |
+| Dev install (cloned repo) | `Vencord/src/plugins/` |
 
 ### Step 2 — Copy the plugin
 
@@ -30,14 +30,14 @@ The location depends on how you installed Vencord:
 # Clone the plugin repo
 git clone https://github.com/Privex-chat/sentinel-plugin.git
 
-# Copy the plugin folder into Vencord's userplugins directory
-cp -r sentinel-plugin/userplugins/sentinel-ui /path/to/Vencord/src/userplugins/sentinel-ui
+# Copy the plugin folder into Vencord's plugins directory
+cp -r sentinel-plugin/plugins/sentinel-ui /path/to/Vencord/src/plugins/sentinel-ui
 ```
 
 On Windows (PowerShell):
 
 ```powershell
-Copy-Item -Recurse sentinel-plugin\userplugins\sentinel-ui "$env:APPDATA\Vencord\src\userplugins\sentinel-ui"
+Copy-Item -Recurse sentinel-plugin\plugins\sentinel-ui "$env:APPDATA\Vencord\src\plugins\sentinel-ui"
 ```
 
 ### Step 3 — Rebuild Vencord
@@ -109,7 +109,7 @@ Pull the latest plugin code and re-copy the folder:
 ```bash
 cd sentinel-plugin
 git pull
-cp -r userplugins/sentinel-ui /path/to/Vencord/src/userplugins/sentinel-ui
+cp -r plugins/sentinel-ui /path/to/Vencord/src/plugins/sentinel-ui
 cd /path/to/Vencord && pnpm build
 ```
 
