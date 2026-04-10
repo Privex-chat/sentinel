@@ -28,20 +28,20 @@ Everything runs on your own infrastructure. No data leaves your setup unless you
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Your Infrastructure                       │
+│                        Your Infrastructure                      │
 │                                                                 │
 │   ┌──────────────────┐        ┌──────────────────────────────┐  │
 │   │ sentinel-selfbot │◄──────►│         SQLite DB            │  │
 │   │  (Node.js proc)  │        │   (local or + Supabase)      │  │
 │   └────────┬─────────┘        └──────────────────────────────┘  │
 │            │  REST + SSE API (:48923)                           │
-│            │                                                     │
+│            │                                                    │
 │     ┌──────┴──────────────────────────────┐                     │
 │     │                                     │                     │
 │  ┌──▼────────────┐            ┌───────────▼──────────────────┐  │
-│  │sentinel-proxy │            │         sentinel-web          │  │
+│  │sentinel-proxy │            │         sentinel-web         │  │
 │  │ (Windows only)│            │  (Next.js, Vercel or self-   │  │
-│  └──────┬────────┘            │   hosted, any browser)        │  │
+│  └──────┬────────┘            │   hosted, any browser)       │  │
 │         │                     └──────────────────────────────┘  │
 │  ┌──────▼────────┐                                              │
 │  │sentinel-plugin│                                              │
