@@ -13,7 +13,7 @@ Discord API (WebSocket + REST)
         │
         ▼
 ┌───────────────────────────────────────────────┐
-│              sentinel-selfbot                  │
+│              sentinel-selfbot                 │
 │                                               │
 │  Gateway ──► Collectors ──► SQLite DB         │
 │                    │                          │
