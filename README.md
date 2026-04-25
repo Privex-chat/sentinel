@@ -20,7 +20,7 @@ Everything runs on your own infrastructure. No data leaves your setup unless you
 | [sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) | Vencord plugin that renders the full dashboard inside Discord's settings panel. Talks to the selfbot API in real time. | Stable |
 | [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Lightweight Windows proxy for users running the selfbot on an external server (Railway, Fly.io, etc.). Runs silently on boot and forwards requests from the plugin. | Stable |
 | [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Next.js web dashboard. Same analytics and monitoring as the plugin, accessible from any browser. Hosted at [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app). | Stable |
-| [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Proper Discord bot for server staff. Multi-server shared intelligence network — no user token required. | Planned |
+| [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Proper Discord bot for server staff. Multi-server shared intelligence network — no user token required. | In Development |
 
 ---
 
@@ -65,9 +65,8 @@ The selfbot is the core. Everything else is a UI layer or a connectivity helper 
 | [Web Dashboard](docs/web.md) | Using and self-hosting the web frontend |
 | [API Reference](docs/api.md) | Every selfbot API endpoint |
 | [Supabase / Cloud](docs/supabase.md) | Configuring cloud backup and sync |
-| [Sentinel Bot](docs/bot.md) | The planned community intelligence bot (roadmap) |
+| [Sentinel Bot](docs/bot.md) | The community intelligence bot (in development) |
 | [Future Improvements](docs/future-improvements.md) | Planned features and roadmap |
-
 
 ---
 
@@ -120,11 +119,17 @@ Full instructions: [docs/selfbot.md](docs/selfbot.md) and [docs/plugin.md](docs/
 
 ## License
 
-All Sentinel components are licensed under the **PolyForm Noncommercial License 1.0.0**.
+Licensing varies by component:
 
-Commercial use is not permitted. Personal use, research, and use by noncommercial organizations is allowed.
+| Component | License |
+|-----------|---------|
+| sentinel-selfbot | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
+| sentinel-plugin | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
+| sentinel-proxy | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
+| sentinel-web | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
+| sentinel-bot | **Proprietary — Source Visibility Only.** The source code is publicly visible for transparency and community supervision purposes only. No rights to use, copy, modify, distribute, or fork are granted. See the [sentinel-bot LICENSE](https://github.com/Privex-chat/sentinel-bot/blob/main/LICENSE) for full terms. Commercial rights are retained exclusively by the author. |
 
-See [LICENSE](LICENSE) for the full text.
+Copyright (c) 2026–present Hemansh (privexchat@gmail.com)
 
 ---
 
@@ -135,4 +140,4 @@ See [LICENSE](LICENSE) for the full text.
 - [github.com/Privex-chat/sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) — Vencord plugin UI.
 - [github.com/Privex-chat/sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) — Windows local proxy.
 - [github.com/Privex-chat/sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser-based dashboard.
-- [github.com/Privex-chat/sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community bot (planned).
+- [github.com/Privex-chat/sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community intelligence bot (in development, proprietary).
