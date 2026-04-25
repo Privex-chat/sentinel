@@ -1,0 +1,148 @@
+Sentinel Bot — Proprietary Source Visibility License
+Copyright (c) 2026–present Hemansh (privexchat@gmail.com)
+All Rights Reserved.
+
+================================================================================
+PREAMBLE
+================================================================================
+
+This software and all associated source code, documentation, design documents,
+architecture descriptions, algorithms, data structures, interfaces, and any
+other materials in this repository (collectively, "the Software") are the
+exclusive intellectual property of the copyright holder named above.
+
+The source code is made publicly visible on GitHub for two purposes only:
+(1) transparency — so users of any deployed service built on this Software can
+    inspect what it does; and
+(2) community supervision — so the public can audit the Software for security
+    and ethical considerations.
+
+Public visibility does NOT constitute an open-source release, a public domain
+dedication, or a grant of any rights beyond the narrow permission stated below.
+
+================================================================================
+GRANT OF PERMISSIONS
+================================================================================
+
+Subject to the restrictions below, you are granted one and only one permission:
+
+  VIEW PERMISSION: You may read and inspect the source code of this Software
+  for personal, non-commercial reference and auditing purposes only.
+
+No other rights are granted. All other rights are expressly reserved by the
+copyright holder.
+
+================================================================================
+RESTRICTIONS — ALL OF THE FOLLOWING ARE STRICTLY PROHIBITED
+================================================================================
+
+Without prior written authorization from the copyright holder
+(privexchat@gmail.com), you MAY NOT, under any circumstances:
+
+1.  USE the Software, in whole or in part, for any purpose — commercial or
+    non-commercial — including running, executing, deploying, or hosting it.
+
+2.  COPY or REPRODUCE the Software, in whole or in part, in any form or medium,
+    including but not limited to copying to another repository, storage system,
+    cloud service, or local machine for any purpose other than temporary browser
+    caching incidental to viewing this repository.
+
+3.  MODIFY or CREATE DERIVATIVE WORKS based on the Software, including but not
+    limited to adapting, translating, transforming, or building upon it.
+
+4.  DISTRIBUTE, PUBLISH, or TRANSMIT the Software or any portion of it to any
+    third party by any means.
+
+5.  FORK this repository on any platform, or clone it for any purpose other
+    than temporary read-only inspection immediately discarded thereafter.
+
+6.  SUBLICENSE or TRANSFER any purported rights in the Software to any third
+    party.
+
+7.  INCORPORATE any portion of this Software — including logic, algorithms,
+    data models, architectural patterns, API designs, database schemas, or
+    system designs — into any other project, product, or service, whether or
+    not the original code is used verbatim.
+
+8.  REVERSE ENGINEER, decompile, or disassemble any compiled or obfuscated
+    form of the Software for any purpose beyond reading what is already
+    publicly visible.
+
+9.  COMPETE with the copyright holder by building a substantially similar
+    product or service that reproduces the core functionality, system design,
+    or user-facing features of this Software.
+
+10. REMOVE, ALTER, or OBSCURE this license notice or any copyright notice
+    contained in or accompanying the Software.
+
+================================================================================
+COMMERCIAL EXCLUSIVITY
+================================================================================
+
+The copyright holder reserves the exclusive right to commercialize, license,
+sell, sublicense, and build products or services based on the Software. No
+party other than the copyright holder may derive commercial benefit from the
+Software in any form.
+
+================================================================================
+NO PATENT LICENSE
+================================================================================
+
+This license does not grant any rights under any patent, pending patent
+application, or patent claim held or licensable by the copyright holder.
+Nothing in this license shall be construed as a grant of a patent license,
+whether by implication, estoppel, or otherwise.
+
+================================================================================
+NO TRADEMARK LICENSE
+================================================================================
+
+This license does not grant permission to use the names, trademarks, service
+marks, product names, or logos of the copyright holder or of this project,
+including "Sentinel", "Sentinel Bot", "Privex", or any associated marks,
+except as required for factually accurate attribution.
+
+================================================================================
+NO WARRANTY
+================================================================================
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+WITH THE SOFTWARE OR THE PERMITTED USE OF THE SOFTWARE.
+
+================================================================================
+ENFORCEMENT
+================================================================================
+
+Any use of this Software beyond the single View Permission granted above
+constitutes copyright infringement and a breach of this license. The copyright
+holder reserves the right to seek all available legal remedies, including but
+not limited to injunctive relief and claims for damages.
+
+Failure by the copyright holder to enforce any provision of this license at any
+time shall not be construed as a waiver of the right to enforce it later.
+
+================================================================================
+GOVERNING LAW
+================================================================================
+
+This license shall be governed by and construed in accordance with applicable
+law, without regard to conflict-of-law principles. The copyright holder retains
+the right to bring enforcement actions in any jurisdiction where infringement
+occurs.
+
+================================================================================
+CONTACT
+================================================================================
+
+For licensing inquiries, commercial partnerships, or written authorization
+requests, contact:
+
+  Hemansh
+  privexchat@gmail.com
+  https://github.com/Privex-chat
+
+Required Notice: Copyright Hemansh (https://github.com/Privex-chat)
