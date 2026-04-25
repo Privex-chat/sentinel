@@ -127,7 +127,7 @@ Licensing varies by component:
 | sentinel-plugin | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
 | sentinel-proxy | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
 | sentinel-web | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
-| sentinel-bot | **Proprietary — Source Visibility Only.** The source code is publicly visible for transparency and community supervision purposes only. No rights to use, copy, modify, distribute, or fork are granted. See the [sentinel-bot LICENSE](https://github.com/Privex-chat/sentinel-bot/blob/main/LICENSE) for full terms. Commercial rights are retained exclusively by the author. |
+| sentinel-bot | **Proprietary — Source Visibility Only.** The source code is publicly visible for transparency and community supervision purposes only. No rights to use, copy, modify, distribute, or fork are granted. See the [sentinel-bot LICENSE](https://github.com/Privex-chat/sentinel/blob/main/sentinel-bot-LICENSE) for full terms. Commercial rights are retained exclusively by the author. |
 
 Copyright (c) 2026–present Hemansh (privexchat@gmail.com)
 
