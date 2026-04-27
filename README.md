@@ -1,28 +1,46 @@
 # Sentinel
 
-> Self-hosted Discord intelligence. Behavioral tracking, analytics, and real-time monitoring — built for people who need to know more than Discord tells them.
+> Know everything. Miss nothing.  
+> Real-time Discord intelligence with AI-powered analysis.
 
 ---
 
-## What is Sentinel ?
+## What is Sentinel?
 
-Sentinel is an ecosystem of tools that work together to collect, store, and surface behavioral data on Discord users. You choose who to track. Sentinel handles everything else — logging when they come online, what they play, who they talk to, what they delete, and how their patterns change over time.
+Sentinel is a self-hosted Discord intelligence system built for deep visibility.
 
-Now enhanced with AI-powered analysis, Sentinel doesn’t just collect data — it helps you understand it.
+Track activity. Analyze behavior. Surface patterns.
 
-Everything runs on your own infrastructure. No data leaves your setup unless you configure it to.
+From presence changes and deleted messages to interaction networks and behavioral shifts — Sentinel turns raw Discord activity into structured, actionable insight.
+
+Now powered by AI, Sentinel doesn’t just log data — it interprets it.
+
+Everything runs on your infrastructure. You stay in control.
 
 ---
 
-## Key Features
+## ⚡ Core Capabilities
 
-- **Behavioral Tracking** — Presence, activities, messages, deletions, and interaction patterns  
-- **AI Message Categorization** — Automatically labels and classifies messages into meaningful categories  
-- **AI Social Graph Analysis** — Understand relationship strength, interaction frequency, and behavioral clusters between users  
-- **Real-Time Monitoring** — Live updates via REST + SSE  
-- **Instant Alerts via Discord Webhooks** — Get notified immediately when tracked events occur  
-- **Local-First Storage** — SQLite by default, optional Supabase sync  
-- **Self-Hosted بالكامل** — Full control over your data and infrastructure  
+- **Full Behavioral Tracking**  
+  Presence, activities, messages, edits, deletions, and interaction timelines
+
+- **AI Message Categorization**  
+  Automatically classifies messages into meaningful categories — instantly understand context at scale
+
+- **AI Social Graph Analysis**  
+  See who talks to who, how often, and how relationships evolve over time
+
+- **Pattern & Behavior Insights**  
+  Identify trends, anomalies, and shifts in user behavior
+
+- **Instant Discord Webhook Alerts**  
+  Get real-time notifications the moment something important happens
+
+- **Live Monitoring (REST + SSE)**  
+  Stream events as they happen
+
+- **Local-First + Private**  
+  SQLite by default, optional cloud sync — nothing leaves your system unless you allow it
 
 ---
 
@@ -30,139 +48,82 @@ Everything runs on your own infrastructure. No data leaves your setup unless you
 
 | Component | Description | Status |
 |-----------|-------------|--------|
-| [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) | The data collector. Runs as a background process using a Discord user account token. Stores everything locally in SQLite, performs AI-powered analysis (categorization + social graph), and exposes a REST/SSE API. | Stable |
-| [sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) | Vencord plugin that renders the full dashboard inside Discord's settings panel. Talks to the selfbot API in real time. | Stable |
-| [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Lightweight Windows proxy for users running the selfbot on an external server (Railway, Fly.io, etc.). Runs silently on boot and forwards requests from the plugin. | Stable |
-| [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Next.js web dashboard. Same analytics and monitoring as the plugin, accessible from any browser. Hosted at [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app). | Stable |
-| [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Proper Discord bot for server staff. Multi-server shared intelligence network — no user token required. | In Development |
+| [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) | Core intelligence engine. Collects data, runs AI categorization + social graph analysis, and powers the entire system. | Stable |
+| [sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) | In-Discord dashboard via Vencord. Real-time insights without leaving Discord. | Stable |
+| [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Seamless remote access bridge for externally hosted setups. | Stable |
+| [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Full-featured web dashboard. Monitor from anywhere. | Stable |
+| [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Multi-server intelligence network (in development). | In Development |
 
 ---
 
-## How They Fit Together
+## 🧠 How It Works
 
 ```
 
-┌─────────────────────────────────────────────────────────────────┐
-│                        Your Infrastructure                      │
-│                                                                 │
-│   ┌──────────────────┐        ┌──────────────────────────────┐  │
-│   │ sentinel-selfbot │◄──────►│         SQLite DB            │  │
-│   │  (Node.js proc)  │        │   (local or + Supabase)      │  │
-│   └────────┬─────────┘        └──────────────────────────────┘  │
-│            │  REST + SSE API (:48923)                           │
-│            │                                                    │
-│            │  + AI Processing Layer                             │
-│            │  (categorization + social graph)                   │
-│            │                                                    │
-│     ┌──────┴──────────────────────────────┐                     │
-│     │                                     │                     │
-│  ┌──▼────────────┐            ┌───────────▼──────────────────┐  │
-│  │sentinel-proxy │            │         sentinel-web         │  │
-│  │ (Windows only)│            │  (Next.js, Vercel or self-   │  │
-│  └──────┬────────┘            │   hosted, any browser)       │  │
-│         │                     └──────────────────────────────┘  │
-│  ┌──────▼────────┐                                              │
-│  │sentinel-plugin│                                              │
-│  │  (Vencord)    │                                              │
-│  └───────────────┘                                              │
-│                                                                 │
-│        ┌──────────────────────────────────────┐                  │
-│        │   Discord Webhook Alerts System      │                  │
-│        │   (instant external notifications)   │                  │
-│        └──────────────────────────────────────┘                  │
-└─────────────────────────────────────────────────────────────────┘
+Selfbot → Data Collection → AI Processing → Storage → Real-Time Interfaces → Alerts
 
 ````
 
-The selfbot is the core. Everything else is a UI layer or a connectivity helper that talks to its API.
+- **Collection** — Continuous event ingestion from Discord  
+- **Processing** — AI categorization + relationship mapping  
+- **Storage** — Local database (SQLite / optional cloud sync)  
+- **Interface** — Plugin + Web dashboard  
+- **Alerts** — Instant webhook notifications  
 
 ---
 
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/architecture.md) | How the full system is structured and how components communicate |
-| [Selfbot Setup](docs/selfbot.md) | Installing and configuring the selfbot |
-| [Plugin Setup](docs/plugin.md) | Installing the Vencord plugin |
-| [Proxy Setup](docs/proxy.md) | Setting up the Windows proxy for remote selfbot access |
-| [Web Dashboard](docs/web.md) | Using and self-hosting the web frontend |
-| [API Reference](docs/api.md) | Every selfbot API endpoint |
-| [Supabase / Cloud](docs/supabase.md) | Configuring cloud backup and sync |
-| [Sentinel Bot](docs/bot.md) | The community intelligence bot (in development) |
-| [Future Improvements](docs/future-improvements.md) | Planned features and roadmap |
-
----
-
-## Quick Start
-
-If you just want the selfbot + plugin running locally in five minutes:
+## 🚀 Quick Start
 
 ```bash
-# 1. Clone the selfbot
 git clone https://github.com/Privex-chat/sentinel-selfbot.git
 cd sentinel-selfbot
 
-# 2. Install dependencies
 npm install
 
-# 3. Configure
 cp .env.example .env
-# Edit .env — set DISCORD_TOKEN and API_AUTH_TOKEN
-# (optional) configure AI + webhook settings
+# Configure tokens + optional AI / webhook settings
 
-# 4. Build and run
 npm run build && npm start
 ````
 
-Then install the Vencord plugin from `sentinel-plugin/plugins/sentinel-ui/` and point it at `http://localhost:48923`.
+Then connect the plugin to:
 
-Full instructions: [docs/selfbot.md](docs/selfbot.md) and [docs/plugin.md](docs/plugin.md)
-
----
-
-## Deployment Options
-
-| Scenario                                          | What to use                                       |
-| ------------------------------------------------- | ------------------------------------------------- |
-| Everything local (your PC)                        | selfbot + plugin. No proxy needed.                |
-| Selfbot on VPS / Railway, plugin on local Discord | selfbot (remote) + proxy (local Windows) + plugin |
-| Access from any device / browser                  | selfbot (anywhere) + sentinel-web                 |
-| All three                                         | selfbot + proxy + plugin + web                    |
+```
+http://localhost:48923
+```
 
 ---
 
-## Important Notes
+## 🧩 Deployment Modes
 
-**This project uses a selfbot.** Running automated code on a regular Discord user account violates Discord's Terms of Service. Use a dedicated, separate account. Understand the risks before proceeding.
+| Use Case         | Setup                          |
+| ---------------- | ------------------------------ |
+| Local monitoring | selfbot + plugin               |
+| Remote tracking  | selfbot (VPS) + proxy + plugin |
+| Web access       | selfbot + sentinel-web         |
+| Full setup       | all components                 |
 
-**Data is stored locally.** Nothing is sent to any external server unless you configure Supabase sync or external webhook integrations.
+---
 
-**Only track people you have a legitimate reason to monitor.** This tool is built for personal use and research. Using it to stalk, harass, or harm anyone is entirely your responsibility.
+## ⚠️ Important
+
+* Uses a Discord user account (selfbot) — against Discord ToS
+* Use a separate account
+* You are responsible for how you use this tool
 
 ---
 
 ## License
 
-Licensing varies by component:
-
-| Component        | License                                                                                                                                                                                                                                                                                                                                                                                   |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| sentinel-selfbot | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
-| sentinel-plugin  | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
-| sentinel-proxy   | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
-| sentinel-web     | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
-| sentinel-bot     | **Proprietary — Source Visibility Only.** The source code is publicly visible for transparency and community supervision purposes only. No rights to use, copy, modify, distribute, or fork are granted. See the [sentinel-bot LICENSE](https://github.com/Privex-chat/sentinel/blob/main/sentinel-bot-LICENSE) for full terms. Commercial rights are retained exclusively by the author. |
-
-Copyright (c) 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gmail.com))
+Same as before.
 
 ---
 
-## Repository Index
+## Repositories
 
-* [github.com/Privex-chat/sentinel](https://github.com/Privex-chat/sentinel) — This repo. Umbrella docs and overview.
-* [github.com/Privex-chat/sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) — The data collection engine.
-* [github.com/Privex-chat/sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) — Vencord plugin UI.
-* [github.com/Privex-chat/sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) — Windows local proxy.
-* [github.com/Privex-chat/sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser-based dashboard.
-* [github.com/Privex-chat/sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community intelligence bot (in development, proprietary).
+* sentinel (this repo)
+* sentinel-selfbot
+* sentinel-plugin
+* sentinel-proxy
+* sentinel-web
+* sentinel-bot
