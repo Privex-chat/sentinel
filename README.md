@@ -2,11 +2,18 @@
   <img src="demo.gif" alt="Sentinel Demo" width="720">
 </p>
 
-<h1 align="center">🛡️ Sentinel</h1>
-<h3 align="center"><em>Know everything. Miss nothing.</em></h3>
-<p align="center">
-  Real‑time Discord intelligence with AI‑powered analysis.
-</p>
+<table align="center">
+  <tr>
+    <td>
+      <img src="assets/logo.png" alt="Sentinel Logo" width="120" style="vertical-align: middle;">
+    </td>
+    <td>
+      <h1>🛡️ Sentinel</h1>
+      <h3><em>Know everything. Miss nothing.</em></h3>
+      <p>Real‑time Discord intelligence with AI‑powered analysis.</p>
+    </td>
+  </tr>
+</table>
 
 <p align="center">
   <!-- Project badges -->
