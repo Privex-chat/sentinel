@@ -94,36 +94,50 @@ http://localhost:48923
 
 ---
 
-## 🧩 Deployment Modes
+## Deployment Options
 
-| Use Case         | Setup                          |
-| ---------------- | ------------------------------ |
-| Local monitoring | selfbot + plugin               |
-| Remote tracking  | selfbot (VPS) + proxy + plugin |
-| Web access       | selfbot + sentinel-web         |
-| Full setup       | all components                 |
+| Scenario                                          | What to use                                       |
+| ------------------------------------------------- | ------------------------------------------------- |
+| Everything local (your PC)                        | selfbot + plugin. No proxy needed.                |
+| Selfbot on VPS / Railway, plugin on local Discord | selfbot (remote) + proxy (local Windows) + plugin |
+| Access from any device / browser                  | selfbot (anywhere) + sentinel-web                 |
+| All three                                         | selfbot + proxy + plugin + web                    |
 
+Recommended : Deploy selfbot on railway to run 24/7 and access the data from a panel provided by sentinel-web at [Sentinel Panel Website](https://sentinel-panel.vercel.app)
 ---
 
-## ⚠️ Important
+## Important Notes
 
-* Uses a Discord user account (selfbot) — against Discord ToS
-* Use a separate account
-* You are responsible for how you use this tool
+**This project uses a selfbot.** Running automated code on a regular Discord user account violates Discord's Terms of Service. Use a dedicated, separate account. Understand the risks before proceeding.
+
+**Data is stored locally.** Nothing is sent to any external server unless you configure Supabase sync or external webhook integrations.
+
+**Only track people you have a legitimate reason to monitor.** This tool is built for personal use and research. Using it to stalk, harass, or harm anyone is entirely your responsibility.
 
 ---
 
 ## License
 
-Same as before.
+Licensing varies by component:
+
+| Component        | License                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| sentinel-selfbot | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
+| sentinel-plugin  | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
+| sentinel-proxy   | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
+| sentinel-web     | [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use                                                                                                                                                                                                                                               |
+| sentinel-bot     | **Proprietary — Source Visibility Only.** The source code is publicly visible for transparency and community supervision purposes only. No rights to use, copy, modify, distribute, or fork are granted. See the [sentinel-bot LICENSE](https://github.com/Privex-chat/sentinel/blob/main/sentinel-bot-LICENSE) for full terms. Commercial rights are retained exclusively by the author. |
+
+Copyright (c) 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gmail.com))
 
 ---
 
-## Repositories
+## Repository Index
 
-* sentinel (this repo)
-* sentinel-selfbot
-* sentinel-plugin
-* sentinel-proxy
-* sentinel-web
-* sentinel-bot
+* [github.com/Privex-chat/sentinel](https://github.com/Privex-chat/sentinel) — This repo. Umbrella docs and overview.
+* [github.com/Privex-chat/sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) — The data collection engine.
+* [github.com/Privex-chat/sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) — Vencord plugin UI.
+* [github.com/Privex-chat/sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) — Windows local proxy.
+* [github.com/Privex-chat/sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser-based dashboard.
+* [github.com/Privex-chat/sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community intelligence bot (in development, proprietary).
+
