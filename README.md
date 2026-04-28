@@ -5,7 +5,7 @@
 <table align="center">
   <tr>
     <td>
-      <img src="assets/logo.png" alt="Sentinel Logo" width="200" style="vertical-align: middle;">
+      <img src="assets/cropped_circle_image.png" alt="Sentinel Logo" width="200" style="vertical-align: middle;">
     </td>
     <td>
       <h1> 🧢 Sentinel</h1>
