@@ -51,6 +51,14 @@ Sentinel is a **self‑hosted Discord intelligence system** that turns raw activ
 
 ## 🖼️ See It In Action
 
+### 🖥️ Sentinel Dashboard
+
+<p align="center">
+  <img src="assets/Sentinel_Dashboard_full.PNG" alt="Sentinel Dashboard" width="600">
+</p>
+
+Main Sentinel dashboard at [Sentinel Panel Website](https://sentinel-panel.vercel.app) connected to a [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) API which is running on railway 24/7.
+
 ### 🏷️ AI Labeling Messages
 
 <p align="center">
