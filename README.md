@@ -1,7 +1,6 @@
 <p align="center">
   <img src="demo.gif" alt="Sentinel Demo" width="720">
 </p>
-
 <table align="center">
   <tr>
     <td>
