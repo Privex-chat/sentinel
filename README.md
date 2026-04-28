@@ -54,15 +54,15 @@ Sentinel is a **self‑hosted Discord intelligence system** that turns raw activ
 ### 🏷️ AI Labeling Messages
 
 <p align="center">
-  <img src="ai-label.png" alt="AI message categorisation" width="600">
+  <img src="assets/Analytics_Message_Categorization.PNG" alt="AI message categorisation" width="600">
 </p>
 
-Each message is automatically tagged with categories like *question*, *gratitude*, *disagreement*, *urgent*, etc. — giving you instant context, at scale.
+Each message is automatically tagged with categories like *Gaming*, *Humor*, *Question*, *Emotional*, etc. — giving you instant context, at scale.
 
 ### 🌐 Social Graph Visualization
 
 <p align="center">
-  <img src="social-graph.png" alt="Sentinel social graph" width="600">
+  <img src="assets/Analytics_AI_Social_Graph.PNG" alt="Sentinel social graph" width="600">
 </p>
 
 Sentinel builds a dynamic map of communication patterns. See clusters, bridges, and influencers emerge over time.
