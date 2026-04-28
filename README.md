@@ -173,4 +173,4 @@ Copyright © 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gm
 - [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) — Windows local proxy.
 - [sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser‑based dashboard.
 - [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community intelligence bot (in development, proprietary).
-- [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Built with Electron. It bundles both the selfbot backend and the web dashboard into a single Windows installer (in development).
+- [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) — Electron based Desktop app (in development).
