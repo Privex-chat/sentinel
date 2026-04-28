@@ -71,9 +71,9 @@ Sentinel builds a dynamic map of communication patterns. See clusters, bridges, 
 
 ## 💥 One “Wow” Example
 
-> **Behavioural shift detected for `@cryptofox#1234`**  
+> **Behavioural shift detected for `sonixaep`**  
 > Previously: 80% of messages in `#general`, mostly neutral.  
-> Today: 90% in `#announcements`, sentiment shifted sharply negative.  
+> Today: 90% in `#memes`, sentiment shifted sharply negative.  
 > → **Alert pushed to your Discord webhook in real time.**
 
 This isn’t just logging — it’s understanding that something **changed**, and telling you before you’d notice.
@@ -89,6 +89,7 @@ This isn’t just logging — it’s understanding that something **changed**, a
 | [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Seamless remote access bridge for externally hosted setups. | Stable |
 | [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Full‑featured web dashboard. Monitor from anywhere. | Stable |
 | [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Multi‑server intelligence network (in development). | In Development |
+| [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Built with Electron. It bundles both the selfbot backend and the web dashboard into a single Windows installer. | In Development |
 
 ---
 
@@ -172,3 +173,4 @@ Copyright © 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gm
 - [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) — Windows local proxy.
 - [sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser‑based dashboard.
 - [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community intelligence bot (in development, proprietary).
+- [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Built with Electron. It bundles both the selfbot backend and the web dashboard into a single Windows installer (in development).
