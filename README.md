@@ -8,7 +8,7 @@
       <img src="assets/logo.png" alt="Sentinel Logo" width="200" style="vertical-align: middle;">
     </td>
     <td>
-      <h1>🛡️ Sentinel</h1>
+      <h1> 🧢 Sentinel</h1>
       <h3><em>Know everything. Miss nothing.</em></h3>
       <p>Real‑time Discord intelligence with AI‑powered analysis.</p>
     </td>
@@ -27,7 +27,7 @@
 
 ---
 
-## 🧠 Why Sentinel?
+## Why Sentinel?
 
 Sentinel is a **self‑hosted Discord intelligence system** that turns raw activity into meaningful insight. It watches everything — presence, messages, edits, deletions, interactions — and then uses AI to **categorise, map, and surface what actually matters.**
 
@@ -35,7 +35,7 @@ Sentinel is a **self‑hosted Discord intelligence system** that turns raw activ
 
 ---
 
-## ⚡ Core Capabilities
+## Core Capabilities
 
 | Capability | What it does |
 |------------|--------------|
@@ -69,7 +69,7 @@ Sentinel builds a dynamic map of communication patterns. See clusters, bridges, 
 
 ---
 
-## 💥 One “Wow” Example
+## Simple Example
 
 > **Behavioural shift detected for `sonixaep`**  
 > Previously: 80% of messages in `#general`, mostly neutral.  
@@ -80,7 +80,7 @@ This isn’t just logging — it’s understanding that something **changed**, a
 
 ---
 
-## 🧱 The Ecosystem
+## The Ecosystem
 
 | Component | Description | Status |
 |-----------|-------------|--------|
