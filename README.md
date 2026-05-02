@@ -7,15 +7,14 @@
       <img src="assets/cropped_circle_image.png" alt="Sentinel Logo" width="200" style="vertical-align: middle;">
     </td>
     <td>
-      <h1> 🧢 Sentinel</h1>
+      <h1>🧢 Sentinel</h1>
       <h3><em>Know everything. Miss nothing.</em></h3>
-      <p>Real‑time Discord intelligence with AI‑powered analysis.</p>
+      <p>Real-time Discord intelligence with AI-powered analysis.</p>
     </td>
   </tr>
 </table>
 
 <p align="center">
-  <!-- Project badges -->
   <a href="https://github.com/Privex-chat/sentinel"><img src="https://img.shields.io/github/stars/Privex-chat/sentinel?style=social" alt="GitHub stars"></a>
   <a href="https://github.com/Privex-chat/sentinel"><img src="https://img.shields.io/github/forks/Privex-chat/sentinel?style=social" alt="GitHub forks"></a>
   <br>
@@ -28,23 +27,25 @@
 
 ## Why Sentinel?
 
-Sentinel is a **self‑hosted Discord intelligence system** that turns raw activity into meaningful insight. It watches everything — presence, messages, edits, deletions, interactions — and then uses AI to **categorise, map, and surface what actually matters.**
+Sentinel is a **self-hosted Discord intelligence system** that turns raw activity into meaningful insight. It watches everything — presence, messages, edits, deletions, voice, interactions — and then uses AI to **categorise, map, and surface what actually matters.**
 
-> 🔍 **From “what happened?” to “what does it mean?”** — automatically.
+> 🔍 **From "what happened?" to "what does it mean?"** — automatically.
 
 ---
 
 ## Core Capabilities
 
 | Capability | What it does |
-|------------|--------------|
-| 🧭 **Full Behavioural Tracking** | Presence, activities, messages, edits, deletions, and interaction timelines |
-| 🏷️ **AI Message Categorisation** | Instantly classifies messages into context‑rich categories |
-| 🌐 **AI Social Graph Analysis** | Maps who talks to whom, how often, and how relationships evolve |
-| 📈 **Pattern & Behaviour Insights** | Detects trends, anomalies, and sudden shifts in behaviour |
-| 🔔 **Instant Discord Webhook Alerts** | Real‑time notifications the moment something important happens |
-| 📡 **Live Monitoring (REST + SSE)** | Stream events as they happen, plain HTTP or Server‑Sent Events |
-| 🔒 **Local‑First + Private** | SQLite by default, optional cloud sync — nothing leaves your system unless you allow it |
+|---|---|
+| 🟢 **Real-Time Presence Tracking** | Event-driven via Discord's gateway op 14 — status and platform changes delivered instantly, including offline, with no polling lag |
+| 🧭 **Full Behavioural Tracking** | Presence, activities, messages, edits, deletions, voice, reactions, and interaction timelines |
+| 🖥️ **Self-Command System** | Manage tracking directly from Discord — messages delete instantly, no trace remains in the channel |
+| 🏷️ **AI Message Categorisation** | Instantly classifies messages into context-rich categories (gaming, music, venting, humor, etc.) |
+| 🌐 **AI Social Graph Analysis** | Maps relationships with confidence scores — close friend, romantic interest, group buddy, and more |
+| 📈 **Pattern & Behaviour Insights** | Detects trends, anomalies, sleep schedules, routine shifts, and availability windows |
+| 🔔 **Instant Alerts** | Discord webhook alerts with digest mode, fatigue protection, and composite conditions |
+| 📡 **Live Monitoring (REST + SSE)** | Stream events as they happen — Server-Sent Events for real-time UI updates |
+| 🔒 **Local-First + Private** | SQLite by default, optional Supabase sync — nothing leaves your system unless you configure it |
 
 ---
 
@@ -56,61 +57,104 @@ Sentinel is a **self‑hosted Discord intelligence system** that turns raw activ
   <img src="assets/Sentinel_Dashboard_full.PNG" alt="Sentinel Dashboard" width="600">
 </p>
 
-Main Sentinel dashboard at [Sentinel Panel Website](https://sentinel-panel.vercel.app) connected to a [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) API which is running on railway 24/7.
+Main Sentinel dashboard at [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app) connected to a [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) running on Railway 24/7.
 
-### 🏷️ AI Labeling Messages
+### 🏷️ AI Message Categorisation
 
 <p align="center">
   <img src="assets/Analytics_Message_Categorization.PNG" alt="AI message categorisation" width="600">
 </p>
 
-Each message is automatically tagged with categories like *Gaming*, *Humor*, *Question*, *Emotional*, etc. — giving you instant context, at scale.
+Every message is automatically tagged — *Gaming*, *Humor*, *Question*, *Emotional*, etc. — giving instant context at scale.
 
-### 🌐 Social Graph Visualization
+### 🌐 Social Graph Visualisation
 
 <p align="center">
   <img src="assets/Analytics_AI_Social_Graph.PNG" alt="Sentinel social graph" width="600">
 </p>
 
-Sentinel builds a dynamic map of communication patterns. See clusters, bridges, and influencers emerge over time.
+Sentinel builds a dynamic relationship map from interaction patterns. Clusters, bridges, and relationship arcs emerge over time.
 
 ---
 
 ## Simple Example
 
-> **Behavioural shift detected for `sonixaep`**  
-> Previously: 80% of messages in `#general`, mostly neutral.  
-> Today: 90% in `#memes`, sentiment shifted sharply negative.  
+> **Behavioural shift detected for `sonixaep`**
+> Previously: 80% of messages in `#general`, mostly neutral.
+> Today: 90% in `#memes`, sentiment shifted sharply negative.
 > → **Alert pushed to your Discord webhook in real time.**
 
-This isn’t just logging — it’s understanding that something **changed**, and telling you before you’d notice.
+This isn't just logging — it's understanding that something **changed**, and telling you before you'd notice.
+
+---
+
+## 🖥️ Self-Command System
+
+Type commands in any Discord channel. The command message is deleted **immediately** before anyone else sees it. The response self-deletes after a few seconds. No trace.
+
+| Command | Description |
+|---|---|
+| `$add <@user>` | Add a tracking target |
+| `$remove <@user>` | Remove a target |
+| `$pause <@user>` | Suspend tracking, preserve history |
+| `$resume <@user>` | Re-activate a paused target |
+| `$label <@user> <text>` | Set a display label |
+| `$note <@user> <text>` | Append a timestamped note |
+| `$status <@user>` | Current presence, platform & activities |
+| `$seen <@user>` | When the target was last online |
+| `$uptime <@user>` | Today's active time with progress bar |
+| `$streak <@user>` | Time in current status uninterrupted |
+| `$history <@user> [n]` | Last N presence transitions |
+| `$pattern <@user>` | 30-day hourly heatmap (`▁▂▃▄▅▆▇█`) |
+| `$list` | All active targets with live status |
+| `$ping` | REST & gateway latency |
+| `$stats` | System stats — targets, events, DB size, uptime |
+| `$reload` | Reload rules & config live (no restart) |
+| `$help` | Full command reference |
+
+→ Full reference: [docs/commands.md](docs/commands.md)
 
 ---
 
 ## The Ecosystem
 
 | Component | Description | Status |
-|-----------|-------------|--------|
-| [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) | Core intelligence engine. Collects data, runs AI categorisation + social graph analysis, powers the system. | Stable |
-| [sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) | In‑Discord dashboard via Vencord. Real‑time insights without leaving Discord. | Stable |
-| [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Seamless remote access bridge for externally hosted setups. | Stable |
-| [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Full‑featured web dashboard. Monitor from anywhere. | Stable |
-| [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Multi‑server intelligence network (in development). | In Development |
-| [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Built with Electron. It bundles both the selfbot backend and the web dashboard into a single Windows installer. | In Development |
+|---|---|---|
+| [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) | Core intelligence engine. Collects all data, runs AI, powers the system. Event-driven presence tracking via Discord gateway op 14. | ✅ Stable |
+| [sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) | In-Discord dashboard via Vencord. Real-time insights without leaving Discord. | ✅ Stable |
+| [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Seamless remote access bridge for externally hosted setups (Windows). | ✅ Stable |
+| [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Full-featured browser dashboard. Monitor from anywhere. | ✅ Stable |
+| [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Multi-server intelligence network using a proper bot token. | 🔧 In Development |
+| [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Electron app bundling selfbot + web dashboard into a single Windows installer. | 🔧 In Development |
 
 ---
 
 ## 🔧 How It Works
 
 ```
-Selfbot → Data Collection → AI Processing → Storage → Real‑Time Interfaces → Alerts
+Discord Gateway (WebSocket)
+       │
+       │  PRESENCE_UPDATE, MESSAGE_CREATE, VOICE_STATE_UPDATE, ...
+       ▼
+sentinel-selfbot
+       │
+       ├── Op 14 subscriptions → instant offline detection, no polling lag
+       ├── Collectors → SQLite database
+       ├── Alert engine → webhook notifications
+       ├── AI analysis → social graph, message categories, daily briefs
+       └── Fastify HTTP API (:48923) + SSE stream
+              │
+    ┌─────────┼──────────────────┐
+    ▼         ▼                  ▼
+sentinel-  sentinel-proxy   sentinel-web
+ plugin   (Windows bridge)  (any browser)
 ```
 
-- **Collection** — Continuous event ingestion from Discord  
-- **Processing** — AI categorisation + relationship mapping  
-- **Storage** — Local database (SQLite / optional cloud sync)  
-- **Interface** — Plugin + Web dashboard  
-- **Alerts** — Instant webhook notifications  
+1. **Collection** — Continuous event ingestion from Discord's gateway. Op 14 subscriptions push presence changes (including offline) in real time for tracked users.
+2. **Processing** — AI categorises messages, maps relationships, generates briefs. Alert rules evaluate on every event.
+3. **Storage** — Local SQLite. Optional Supabase mirror for cloud deployments.
+4. **Interface** — Plugin + web dashboard consume the REST/SSE API.
+5. **Alerts** — Webhook notifications fire instantly, or in digest batches.
 
 ---
 
@@ -119,32 +163,48 @@ Selfbot → Data Collection → AI Processing → Storage → Real‑Time Interf
 ```bash
 git clone https://github.com/Privex-chat/sentinel-selfbot.git
 cd sentinel-selfbot
-
 npm install
-
 cp .env.example .env
-# Configure tokens + optional AI / webhook settings
-
+# Set DISCORD_TOKEN and API_AUTH_TOKEN at minimum
 npm run build && npm start
 ```
 
-Then connect the plugin to:
+Then connect the plugin or web panel to `http://localhost:48923`.
+
+Add your first target in any Discord channel:
 ```
-http://localhost:48923
+$add @username
 ```
+The message deletes instantly. Tracking starts within 5 seconds.
 
 ---
 
 ## 🗺️ Deployment Options
 
 | Scenario | What to use |
-|----------|-------------|
-| Everything local (your PC) | selfbot + plugin. No proxy needed. |
-| Selfbot on VPS / Railway, plugin on local Discord | selfbot (remote) + proxy (local Windows) + plugin |
-| Access from any device / browser | selfbot (anywhere) + sentinel-web |
-| All three | selfbot + proxy + plugin + web |
+|---|---|
+| Everything local | selfbot + plugin. No proxy needed. |
+| Selfbot on VPS/Railway, plugin on local Discord | selfbot (remote) + proxy (local Windows) + plugin |
+| Browser access from anywhere | selfbot (anywhere) + sentinel-web |
+| All interfaces | selfbot + proxy + plugin + web |
 
-**Recommended:** Deploy the selfbot on Railway for 24/7 uptime and access the data via the web panel at [Sentinel Panel Website](https://sentinel-panel.vercel.app).
+**Recommended for 24/7:** Deploy the selfbot on Railway, access data via the web panel at [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app).
+
+---
+
+## 📚 Documentation
+
+| Guide | Description |
+|---|---|
+| [docs/selfbot.md](docs/selfbot.md) | Full setup and configuration guide |
+| [docs/commands.md](docs/commands.md) | Self-command system reference |
+| [docs/api.md](docs/api.md) | REST & SSE API reference |
+| [docs/presence-tracking.md](docs/presence-tracking.md) | How real-time presence tracking works (op 14 deep-dive) |
+| [docs/architecture.md](docs/architecture.md) | System architecture and data flow |
+| [docs/plugin.md](docs/plugin.md) | Plugin setup guide |
+| [docs/web.md](docs/web.md) | Web dashboard guide |
+| [docs/proxy.md](docs/proxy.md) | Proxy setup guide |
+| [docs/supabase.md](docs/supabase.md) | Supabase cloud sync setup |
 
 ---
 
@@ -161,12 +221,12 @@ http://localhost:48923
 Licensing varies by component:
 
 | Component | License |
-|-----------|---------|
-| sentinel-selfbot | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non‑commercial use |
+|---|---|
+| sentinel-selfbot | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) — free for personal and non-commercial use |
 | sentinel-plugin | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) |
 | sentinel-proxy | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) |
 | sentinel-web | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) |
-| sentinel-bot | **Proprietary** — Source visible for transparency. No rights to use, copy, modify, distribute, or fork. See [LICENSE](https://github.com/Privex-chat/sentinel/blob/main/sentinel-bot-LICENSE). |
+| sentinel-bot | **Proprietary** — Source visible for transparency. No rights to use, copy, modify, distribute, or fork. See [sentinel-bot-LICENSE](sentinel-bot-LICENSE). |
 
 Copyright © 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gmail.com))
 
@@ -175,9 +235,9 @@ Copyright © 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gm
 ## 📂 Repository Index
 
 - [sentinel](https://github.com/Privex-chat/sentinel) — This repo. Umbrella docs and overview.
-- [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) — Data collection engine.
+- [sentinel-selfbot](https://github.com/Privex-chat/sentinel-selfbot) — Data collection and AI engine.
 - [sentinel-plugin](https://github.com/Privex-chat/sentinel-plugin) — Vencord plugin UI.
 - [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) — Windows local proxy.
-- [sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser‑based dashboard.
+- [sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser dashboard.
 - [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community intelligence bot (in development, proprietary).
-- [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) — Electron based Desktop app (in development).
+- [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) — Electron desktop app (in development).

@@ -1,224 +1,264 @@
-# Selfbot Setup
+# sentinel-selfbot — Setup & Configuration Guide
 
-The selfbot is the core of Sentinel. It connects to Discord as a regular user account, collects behavioral data on your tracked targets, and exposes everything through a local API.
+The selfbot is the core data-collection engine of the Sentinel ecosystem. It connects to Discord as a real user account, tracks behavioral data on specified targets, and exposes everything through a local REST/SSE API.
 
 ---
 
-## Before You Start
+## Prerequisites
 
-You need:
-
-1. **A dedicated Discord account** — Do not use your main account. Create a fresh one. Running automated code on a user account violates Discord's Terms of Service.
-2. **Node.js 18 or newer** — Check with `node --version`. Download from [nodejs.org](https://nodejs.org) if needed.
-3. **Your Discord token** — The token of the dedicated account, not a bot token.
-
-### How to Get Your Discord Token
-
-1. Open Discord in a browser (not the desktop app)
-2. Press `F12` to open DevTools
-3. Go to the **Network** tab
-4. Send any message or change any setting to generate a request
-5. Find a request to `discord.com/api`
-6. Look for the `Authorization` header in the request headers
-7. That value is your token — keep it private
+- **Node.js 18+** (LTS recommended)
+- **A Discord user account token** — not a bot token. See the [token extraction guide](#getting-your-discord-token) below.
+- **At least one mutual Discord server** with each target you want to track (required for presence data)
+- *(Optional)* A Supabase project for cloud sync / cloud deployments
+- *(Optional)* An AI API key (Google Gemini free tier recommended)
 
 ---
 
 ## Installation
 
-### Step 1 — Get the code
-
 ```bash
 git clone https://github.com/Privex-chat/sentinel-selfbot.git
 cd sentinel-selfbot
-```
-
-Or download the ZIP from the GitHub releases page.
-
-### Step 2 — Install dependencies
-
-```bash
 npm install
-```
-
-### Step 3 — Create your config
-
-```bash
 cp .env.example .env
 ```
 
-Open `.env` in any text editor and fill in the values:
-
-```env
-DISCORD_TOKEN=your_dedicated_account_token_here
-API_PORT=48923
-API_AUTH_TOKEN=generate_a_random_string_here
-DB_PATH=./data/sentinel.db
-LOG_LEVEL=info
-PROFILE_POLL_INTERVAL_MS=300000
-STATUS_POLL_INTERVAL_MS=120000
-DAILY_SUMMARY_INTERVAL_MS=3600000
-```
-
-To generate a secure random token for `API_AUTH_TOKEN`:
-
-```bash
-# On Linux/macOS/WSL
-openssl rand -hex 32
-
-# On Windows PowerShell
--join ((65..90 + 97..122 + 48..57) | Get-Random -Count 48 | ForEach-Object {[char]$_})
-```
-
-### Step 4 — Build and start
+Edit `.env` with your values, then:
 
 ```bash
 npm run build
 npm start
 ```
 
-You should see:
-
-```
-[INFO] [Sentinel] === Sentinel Starting ===
-[INFO] [Database] Database initialized with WAL mode
-[INFO] [API] API server listening on port 48923
-[INFO] [Gateway] Connecting to gateway...
-[INFO] [Gateway] READY! Logged in as YourUsername#0 | 50 guilds
-[INFO] [Sentinel] === Sentinel Fully Operational ===
-```
-
-### Step 5 — Verify the API
-
-```bash
-curl -H "Authorization: Bearer YOUR_API_AUTH_TOKEN" http://localhost:48923/api/status
-```
-
-You should receive a JSON response with uptime, event count, and database size.
+The API server starts on port `48923` by default.
 
 ---
 
-## Configuration Reference
+## Getting Your Discord Token
+
+> **Warning:** Your Discord token is equivalent to your account password. Never share it.
+
+1. Open Discord in a browser (not the desktop app)
+2. Open DevTools → **Network** tab
+3. Refresh the page and find any request to `discord.com/api`
+4. Look in the request headers for `Authorization` — the value is your token
+5. Copy the full token (no `Bearer` prefix needed)
+
+---
+
+## Environment Variables
+
+### Core (requires restart to change)
 
 | Variable | Default | Description |
-|----------|---------|-------------|
-| `DISCORD_TOKEN` | — | User account token for the dedicated Discord account |
-| `API_PORT` | `48923` | Port the selfbot API listens on |
-| `API_AUTH_TOKEN` | — | Bearer token required by all API clients (plugin, web) |
-| `DB_PATH` | `./data/sentinel.db` | Path to the SQLite database file |
+|---|---|---|
+| `DISCORD_TOKEN` | *(required)* | Your Discord account token |
+| `API_PORT` | `48923` | Port the REST API listens on |
+| `API_AUTH_TOKEN` | *(required)* | Secret token for API authentication (use a random 32+ char string) |
+| `DB_PATH` | `./data/sentinel.db` | SQLite database file path |
 | `LOG_LEVEL` | `info` | Logging verbosity: `debug`, `info`, `warn`, `error` |
-| `PROFILE_POLL_INTERVAL_MS` | `300000` | How often to re-fetch user profiles (5 minutes) |
-| `STATUS_POLL_INTERVAL_MS` | `120000` | How often to re-poll presence via guild member chunk (2 minutes) |
-| `DAILY_SUMMARY_INTERVAL_MS` | `3600000` | How often to compute daily stat rows (1 hour) |
-| `RANDOM_JITTER` | `false` | Adds ±20% random jitter to polling intervals and randomises gateway IDENTIFY fingerprint |
+| `RANDOM_JITTER` | `false` | Add ±20% jitter to polling intervals; randomise gateway fingerprint |
 | `DB_MODE` | `local` | Database mode: `local`, `local+cloud`, or `cloud` |
-| `SUPABASE_URL` | — | Required when `DB_MODE` is not `local` |
-| `SUPABASE_SERVICE_KEY` | — | Required when `DB_MODE` is not `local` |
-| `SUPABASE_SYNC_INTERVAL_MS` | `300000` | How often to push to Supabase (default 5 min; recommend 30 s for `cloud` mode) |
+
+### Runtime-reloadable (hot-reloadable via `PATCH /api/config` or `$reload`)
+
+| Variable | Default | Description |
+|---|---|---|
+| `PROFILE_POLL_INTERVAL_MS` | `300000` | How often to fetch full profile data (5 min) |
+| `STATUS_POLL_INTERVAL_MS` | `120000` | How often to run presence confirmation polls (2 min) |
+| `DAILY_SUMMARY_INTERVAL_MS` | `3600000` | How often to recompute daily summaries (1 hour) |
+| `AI_PROVIDER` | `none` | AI provider: `none`, `gemini`, `openai`, `anthropic`, `ollama` |
+| `AI_MODEL` | `gemini-2.5-flash` | Model name for the selected provider |
+| `AI_API_KEY` | — | API key for the AI provider |
+| `AI_BASE_URL` | `http://localhost:11434/v1` | Base URL (used for Ollama and OpenAI-compatible endpoints) |
+| `AI_ANALYSIS_INTERVAL_MS` | `86400000` | How often to run AI analysis cycles (24 hours) |
+| `AI_CATEGORIZATION_BATCH_SIZE` | `50` | Messages processed per AI categorization batch |
+| `BACKFILL_ENABLED` | `true` | Whether to backfill message history for new targets |
+| `BACKFILL_MAX_DAYS` | `90` | How far back to backfill messages |
+| `BACKFILL_MAX_MESSAGES_PER_CHANNEL` | `5000` | Cap per channel during backfill |
+| `ALERT_WEBHOOK_URL` | — | Discord webhook URL for alert notifications |
+| `CRITICAL_WEBHOOK_URL` | — | Separate webhook for critical system errors only |
+| `ALERT_DIGEST_MODE` | `false` | Batch alerts into periodic summaries instead of firing per-event |
+| `ALERT_DIGEST_INTERVAL_MS` | `900000` | Digest flush interval (15 min) |
+| `ALERT_FATIGUE_THRESHOLD` | `20` | Auto-suppress a rule after this many fires in 24 hours |
+| `BRIEF_GENERATION_TIME` | `07:00` | Time (UTC, HH:MM) to generate daily AI briefs |
+
+---
+
+## Database Modes
+
+### `local` (default)
+
+SQLite only. All data stays on disk at `DB_PATH`. Use this for home servers, VPS instances, and any machine with a persistent filesystem.
+
+```env
+DB_MODE=local
+```
+
+### `local+cloud`
+
+SQLite is the live database; a copy is pushed to Supabase on the sync interval. Good for self-hosted setups that want a cloud backup or cross-device access.
+
+```env
+DB_MODE=local+cloud
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your_service_role_key
+SUPABASE_SYNC_INTERVAL_MS=300000
+```
+
+### `cloud`
+
+For ephemeral hosts (Railway, Render, Fly.io) where the filesystem is wiped on redeploy. On startup, Sentinel pulls all data from Supabase into a fresh local SQLite before connecting to Discord. Set the sync interval low so minimal data is lost if the container is killed.
+
+```env
+DB_MODE=cloud
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your_service_role_key
+SUPABASE_SYNC_INTERVAL_MS=30000
+```
+
+You must run `supabase-schema.sql` against your Supabase project before first use in cloud mode.
+
+---
+
+## AI Setup
+
+AI is fully optional. When disabled (`AI_PROVIDER=none`), all core tracking still works — only social graph analysis, message categorization, and daily briefs are unavailable.
+
+### Google Gemini (recommended — free)
+
+Free tier gives 15 requests/minute and 1 million tokens/day.
+
+```env
+AI_PROVIDER=gemini
+AI_MODEL=gemini-2.5-flash
+AI_API_KEY=your_key_from_aistudio.google.com
+```
+
+Get a key at [aistudio.google.com](https://aistudio.google.com).
+
+### Ollama (local, private)
+
+Runs entirely on your machine. Requires Ollama installed and a model pulled (`ollama pull llama3.2`). To reach it from a cloud selfbot, expose it with ngrok:
+
+```bash
+ngrok http 11434 --host-header="localhost:11434"
+```
+
+```env
+AI_PROVIDER=ollama
+AI_MODEL=llama3.2
+AI_BASE_URL=https://your-ngrok-url.ngrok-free.app/v1
+AI_API_KEY=  # leave blank
+```
+
+### OpenAI
+
+```env
+AI_PROVIDER=openai
+AI_MODEL=gpt-4o-mini
+AI_API_KEY=sk-...
+AI_BASE_URL=https://api.openai.com/v1
+```
+
+### Anthropic
+
+```env
+AI_PROVIDER=anthropic
+AI_MODEL=claude-3-5-haiku-20241022
+AI_API_KEY=sk-ant-...
+```
+
+---
+
+## Deployment
+
+### Local / VPS
+
+```bash
+npm run build && npm start
+```
+
+With PM2 for auto-restart:
+
+```bash
+npm install -g pm2
+pm2 start npm --name sentinel-selfbot -- start
+pm2 save && pm2 startup
+```
+
+### Docker
+
+```bash
+docker build -t sentinel-selfbot .
+docker run -d \
+  --name sentinel-selfbot \
+  -p 48923:48923 \
+  -v $(pwd)/data:/app/data \
+  --env-file .env \
+  sentinel-selfbot
+```
+
+### Railway (one-click)
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/sentinel-selfbot?referralCode=zpvHsG&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
+Set these environment variables in the Railway dashboard:
+- `DISCORD_TOKEN`, `API_AUTH_TOKEN`
+- `DB_MODE=cloud`
+- `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
+- `SUPABASE_SYNC_INTERVAL_MS=30000`
+- `RANDOM_JITTER=true`
+
+### Fly.io
+
+```bash
+fly launch   # uses fly.toml
+fly secrets set DISCORD_TOKEN=... API_AUTH_TOKEN=...
+fly deploy
+```
+
+Use `DB_MODE=cloud` with Supabase for persistent storage.
 
 ---
 
 ## Adding Your First Target
 
-### Via the API
+**Via self-command** (recommended — no trace):
+```
+$add @username
+```
+Type this in any mutual Discord channel. The message deletes instantly; tracking starts within 5 seconds.
 
+**Via REST API:**
 ```bash
-curl -X POST \
-  -H "Authorization: Bearer YOUR_API_AUTH_TOKEN" \
+curl -X POST http://localhost:48923/api/targets \
+  -H "Authorization: your_api_auth_token" \
   -H "Content-Type: application/json" \
-  -d '{"userId":"123456789012345678","label":"Optional label"}' \
-  http://localhost:48923/api/targets
+  -d '{"userId": "123456789012345678"}'
 ```
 
-### Via the Plugin or Web Dashboard
-
-Use the **+ Add Target** button in the dashboard and enter the user's Discord ID. You can also right-click any user in Discord (with the plugin installed) and select **Track with Sentinel**.
-
-### Finding a Discord User ID
-
-Enable Developer Mode in Discord: **Settings → Advanced → Developer Mode**. Then right-click any user and select **Copy User ID**.
+**Via the dashboard** — use sentinel-web or the Vencord plugin UI.
 
 ---
 
-## Keeping It Running
+## OPSEC Recommendations
 
-### Using PM2 (recommended for VPS / always-on)
-
-```bash
-npm install -g pm2
-pm2 start dist/index.js --name sentinel
-pm2 save
-pm2 startup   # follow the printed instruction to enable autostart
-```
-
-Useful commands:
-
-```bash
-pm2 logs sentinel      # live logs
-pm2 restart sentinel   # restart
-pm2 stop sentinel      # stop
-pm2 status             # check if running
-```
-
-### Docker
-
-A `Dockerfile` is included. Build and run:
-
-```bash
-docker build -t sentinel-selfbot .
-docker run -d \
-  -p 48923:48923 \
-  -v /path/to/data:/data \
-  -e DISCORD_TOKEN=your_token \
-  -e API_AUTH_TOKEN=your_api_token \
-  -e DB_PATH=/data/sentinel.db \
-  --name sentinel \
-  sentinel-selfbot
-```
-
-### Railway / Render / Fly.io
-
-A `railway.toml` and `fly.toml` are included in the repo. Set your environment variables (`DISCORD_TOKEN`, `API_AUTH_TOKEN`, `DB_MODE=cloud`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`) in the platform's dashboard, then deploy.
-
-**Important:** Use `DB_MODE=cloud` on ephemeral platforms so data survives redeployments. See [supabase.md](supabase.md).
+- Set `RANDOM_JITTER=true` — randomises polling intervals and the browser/OS fingerprint in Discord gateway payloads and REST headers, making traffic patterns less predictable
+- Avoid adding more than one target every 15 minutes (the selfbot enforces this automatically)
+- Use `CRITICAL_WEBHOOK_URL` pointing to a private channel to be notified immediately if your token is invalidated
+- Self-commands delete instantly — use them in any channel rather than the API when you need to act quickly and leave no trace
+- Do not run the selfbot from a residential IP that you also use to log into the Discord account normally; use a VPS
 
 ---
 
-## Running on a Remote Server
+## Upgrading
 
-If the selfbot runs on a VPS or cloud platform and you want to connect to it from the Vencord plugin:
+```bash
+git pull
+npm install
+npm run build
+pm2 restart sentinel-selfbot   # or restart however you run it
+```
 
-- The plugin can reach the API over the network, but it needs the proxy if you're on Windows (see [proxy.md](proxy.md))
-- Configure the plugin's **Sentinel URL** to your server's IP or domain (e.g., `http://123.45.67.89:48923` or `https://sentinel.yourdomain.com`)
-- Make sure port `48923` is open in your firewall / security group
-- For HTTPS, put Nginx or Caddy in front of the selfbot proxying to `localhost:48923`
-
-Alternatively, use [sentinel-web](https://github.com/Privex-chat/sentinel-web) to access your data from any browser without needing the plugin.
-
----
-
-## Troubleshooting
-
-**Selfbot won't connect to Discord**
-
-- Make sure your token is a user account token, not a bot token. Bot tokens have three dot-separated sections.
-- Error code `4004` → token is wrong or expired.
-- Error code `4013` or `4014` → intents issue. Confirm you're using a user token, not a bot token.
-
-**No presence data for a tracked target**
-
-- Sentinel can only observe events from servers that both the selfbot account and the target share. If there are no mutual servers, presence won't update.
-- Add the dedicated account to a server that the target is also in.
-
-**Database growing large**
-
-- Each event is a row. Active targets with lots of messages generate thousands of rows per day.
-- SQLite handles hundreds of millions of rows without issue, but if disk is a concern, increase `PROFILE_POLL_INTERVAL_MS` and `STATUS_POLL_INTERVAL_MS`.
-
-**High memory usage**
-
-- The 64MB SQLite cache is expected. The selfbot itself is lightweight. Check Node.js version and look for memory leaks if usage is unexpectedly high.
-
-**Starting fresh**
-
-- Stop the selfbot, delete `./data/sentinel.db`, and restart. All data is lost but the process starts clean.
+Database migrations run automatically on startup — no manual steps needed.

@@ -1,416 +1,366 @@
-# API Reference
+# Sentinel Selfbot — REST & SSE API Reference
 
-The selfbot exposes a Fastify HTTP API on port `48923` (configurable). All endpoints require a Bearer token matching `API_AUTH_TOKEN` from the selfbot's `.env`.
-
-```
-Authorization: Bearer <your_api_auth_token>
-```
-
-Base URL: `http://localhost:48923` (or your configured host/port)
-
-All responses are JSON unless otherwise noted.
+The selfbot exposes a local HTTP API on port `48923` (configurable via `API_PORT`). All endpoints under `/api/` require authentication.
 
 ---
 
-## System
+## Authentication
 
-### GET /api/status
+Every request must include the `Authorization` header:
 
-Returns selfbot health and statistics.
+```
+Authorization: your_api_auth_token
+```
 
-```json
-{
-  "uptime": 86400000,
-  "uptimeFormatted": "1d 0h 0m",
-  "eventCount": 142837,
-  "targetCount": 3,
-  "activeTargets": 3,
-  "dbSizeBytes": 52428800,
-  "dbSizeMB": 50.0,
-  "startedAt": 1712345678000
-}
+The value must match `API_AUTH_TOKEN` in your `.env`. There is no `Bearer` prefix.
+
+---
+
+## Base URL
+
+```
+http://localhost:48923
 ```
 
 ---
 
 ## Targets
 
-### GET /api/targets
+### `GET /api/targets`
+List all monitored targets (active and inactive).
 
-Returns all tracked users.
-
+**Response:** array of target objects
 ```json
 [
   {
     "user_id": "123456789012345678",
-    "added_at": 1712345678000,
-    "label": "My Target",
-    "notes": "Some notes",
-    "priority": 1,
+    "added_at": 1714680000000,
+    "label": "friend1",
+    "notes": "[2025-05-01 14:23] went quiet",
+    "priority": 0,
     "active": 1
   }
 ]
 ```
 
-`priority`: `0` = normal, `1` = high, `2+` = critical.
-`active`: `1` = tracking, `0` = paused.
+---
 
-### POST /api/targets
-
-Add a new target.
+### `POST /api/targets`
+Add a new tracking target.
 
 **Body:**
 ```json
 {
   "userId": "123456789012345678",
-  "label": "Optional label",
-  "notes": "Optional notes",
+  "label": "optional label",
+  "notes": "optional notes",
   "priority": 0
 }
 ```
 
-`userId` must be a valid Discord snowflake (17–20 digit numeric string). Returns `400` if invalid.
+- `userId` must be a valid Discord snowflake (17–20 digits)
+- Rate limited to 1 new target per 15 minutes
+- Returns `429` with `retryAfterMs` if rate limited
 
-**Response:** `{ "success": true, "userId": "..." }`
+**Response:**
+```json
+{ "success": true, "userId": "123456789012345678" }
+```
 
-### DELETE /api/targets/:userId
+---
 
-Remove a target. Stops tracking but does **not** delete historical data.
+### `DELETE /api/targets/:userId`
+Remove a target and all their tracking data.
 
-### PATCH /api/targets/:userId
+**Response:** `{ "success": true }`
 
-Update target metadata. All fields optional.
+---
 
-**Body:**
+### `PATCH /api/targets/:userId`
+Update target metadata.
+
+**Body** (all fields optional):
 ```json
 {
-  "label": "New label",
-  "notes": "Updated notes",
-  "priority": 2,
+  "label": "new label",
+  "notes": "new notes",
+  "priority": 1,
   "active": false
+}
+```
+
+Use `null` to clear `label` or `notes`. Setting `active: false` pauses tracking without deleting data.
+
+---
+
+## Current Status
+
+### `GET /api/targets/:userId/status`
+Get a target's current live state.
+
+**Response:**
+```json
+{
+  "presence": {
+    "status": "dnd",
+    "platform": "desktop",
+    "clientStatus": { "desktop": "dnd" }
+  },
+  "activities": [
+    { "name": "Valorant", "type": 0, "details": "Competitive", "state": "In Game" }
+  ],
+  "voiceState": null,
+  "profileSnapshot": { "username": "...", "avatar_hash": "...", ... }
 }
 ```
 
 ---
 
-## Target State
+### `GET /api/status`
+Server health check.
 
-### GET /api/targets/:userId/status
-
-Returns the target's current live state from in-memory tracking.
-
+**Response:**
 ```json
 {
-  "target": { ... },
-  "presence": {
-    "status": "online",
-    "platform": "desktop",
-    "clientStatus": { "desktop": "online" }
-  },
-  "activities": [
-    {
-      "name": "Valorant",
-      "type": 0,
-      "details": "Competitive — In Game",
-      "state": "5 Wins — Gold 2"
-    }
-  ],
-  "voiceState": {
-    "guildId": "...",
-    "channelId": "...",
-    "selfMute": false,
-    "selfDeaf": false,
-    "streaming": false
-  },
-  "profile": { ... }
+  "uptime": 86423,
+  "eventCount": 142831,
+  "targetCount": 6,
+  "activeTargetCount": 4,
+  "dbSizeBytes": 24539136
 }
 ```
-
-Activity types: `0` = Playing, `1` = Streaming, `2` = Listening (Spotify), `4` = Custom Status.
 
 ---
 
 ## Events
 
-### GET /api/events
+### `GET /api/events`
+Query the event log with filters.
 
-Query the event log with optional filters.
-
-**Query parameters:**
-
+**Query params:**
 | Param | Description |
-|-------|-------------|
-| `targetId` | Filter to a specific user |
-| `type` | Filter by event type (e.g., `PRESENCE_UPDATE`) |
-| `since` | Unix timestamp ms — events after this time |
-| `until` | Unix timestamp ms — events before this time |
-| `guildId` | Filter to a specific guild |
-| `channelId` | Filter to a specific channel |
-| `limit` | Max results (default 100) |
-| `offset` | Pagination offset (default 0) |
+|---|---|
+| `targetId` | Filter by user ID |
+| `type` | Filter by event type (e.g. `PRESENCE_UPDATE`, `MESSAGE_CREATE`) |
+| `since` | Start timestamp (ms) |
+| `until` | End timestamp (ms) |
+| `guildId` | Filter by guild |
+| `channelId` | Filter by channel |
+| `search` | Full-text search in event data |
+| `limit` | Max results (1–1000, default 100) |
+| `offset` | Pagination offset |
 
-### GET /api/events/stream
-
-Server-Sent Events stream. Pushes new events in real time.
-
-**Query parameters:**
-- `targetId` — filter to a specific user (optional)
-
-**Response:** `Content-Type: text/event-stream`
-
-Each event: `data: {"target_id":"...","event_type":"...","timestamp":...,"data":{...}}`
-
-Initial message on connect: `data: {"type":"connected"}`
+**Event types include:**
+`PRESENCE_UPDATE`, `PLATFORM_SWITCH`, `INITIAL_PRESENCE`, `ACTIVITY_START`, `ACTIVITY_END`, `SPOTIFY_START`, `SPOTIFY_END`, `STREAMING_START`, `STREAMING_END`, `CUSTOM_STATUS_SET`, `CUSTOM_STATUS_CLEARED`, `VOICE_JOIN`, `VOICE_LEAVE`, `VOICE_MOVE`, `VOICE_STATE_CHANGE`, `MESSAGE_CREATE`, `MESSAGE_UPDATE`, `MESSAGE_DELETE`, `TYPING_START`, `GHOST_TYPE`, `PROFILE_UPDATE`, `AVATAR_CHANGE`, `USERNAME_CHANGE`, `REACTION_ADD`, `REACTION_REMOVE`, `NICKNAME_CHANGE`, `ROLE_ADD`, `ROLE_REMOVE`, `DM_CHANNEL_OPENED`
 
 ---
 
-## Event Types
+### `GET /api/events/stream`
+Server-Sent Events stream for real-time event delivery.
 
-| Event Type | Trigger |
-|------------|---------|
-| `PRESENCE_UPDATE` | Status changed |
-| `INITIAL_PRESENCE` | First presence observed this session |
-| `PLATFORM_SWITCH` | Switched between desktop/mobile/web |
-| `ACTIVITY_START` | Started a game or activity |
-| `ACTIVITY_END` | Stopped a game or activity |
-| `SPOTIFY_START` | Started Spotify |
-| `SPOTIFY_END` | Stopped Spotify |
-| `STREAMING_START` | Started streaming |
-| `STREAMING_END` | Stopped streaming |
-| `CUSTOM_STATUS_SET` | Set custom status |
-| `CUSTOM_STATUS_CLEARED` | Cleared custom status |
-| `MESSAGE_CREATE` | Sent a message |
-| `MESSAGE_UPDATE` | Edited a message |
-| `MESSAGE_DELETE` | Deleted a message |
-| `TYPING_START` | Started typing |
-| `GHOST_TYPE` | Typed but didn't send within 15 seconds |
-| `VOICE_JOIN` | Joined a voice channel |
-| `VOICE_LEAVE` | Left a voice channel |
-| `VOICE_MOVE` | Moved between voice channels |
-| `VOICE_STATE_CHANGE` | Mute/deafen/streaming state changed |
-| `PROFILE_UPDATE` | Any profile field changed |
-| `AVATAR_CHANGE` | Avatar changed |
-| `USERNAME_CHANGE` | Username changed |
-| `NICKNAME_CHANGE` | Server nickname changed |
-| `ROLE_ADD` | Role added in a guild |
-| `ROLE_REMOVE` | Role removed from a guild |
-| `REACTION_ADD` | Added a reaction |
-| `REACTION_REMOVE` | Removed a reaction |
-| `SERVER_JOIN` | Joined a new server |
-| `SERVER_LEAVE` | Left a server |
-| `ACCOUNT_CONNECTED` | Connected an external account |
-| `ACCOUNT_DISCONNECTED` | Disconnected an external account |
-| `DM_CHANNEL_OPENED` | A DM channel was opened with the selfbot |
-| `ALERT` | An alert rule was triggered |
+**Query params:**
+- `targetId` — optional, filter stream to a specific target
 
----
-
-## Timeline
-
-### GET /api/targets/:userId/timeline
-
-Returns recent events plus presence, activity, and voice sessions (Gantt chart data).
-
-**Query parameters:** `limit`, `offset`, `type` (event type filter)
-
-**Response:**
-```json
-{
-  "events": [ ... ],
-  "presenceSessions": [ ... ],
-  "activitySessions": [ ... ],
-  "voiceSessions": [ ... ]
-}
+**Event format:**
+```
+data: {"target_id":"123...","event_type":"PRESENCE_UPDATE","timestamp":1714680000000,"data":{...}}
 ```
 
-### GET /api/targets/:userId/timeline/day/:date
-
-All events and sessions for a specific day. Date format: `YYYY-MM-DD`.
-
----
-
-## Analytics
-
-All analytics endpoints accept a `days` query parameter (default varies).
-
-### GET /api/targets/:userId/analytics/presence
-
-`?days=30`
-
-Presence time distribution by status and platform, plus `totalActiveMs` (online + idle + DND combined).
-
-### GET /api/targets/:userId/analytics/activities
-
-`?days=90`
-
-Full gaming profile — playtime per game, session counts, peak hours, recently started, abandoned games.
-
-### GET /api/targets/:userId/analytics/messages
-
-`?days=30`
-
-Communication stats — average length, edit/delete/ghost rates, vocabulary richness, messages by hour.
-
-### GET /api/targets/:userId/analytics/voice
-
-`?days=30`
-
-Voice habits — total time, session count, mute ratio, preferred channels, top co-participants.
-
-### GET /api/targets/:userId/analytics/social
-
-`?days=30`
-
-Social graph — scored connections ranked by interaction volume, with relationship classification.
-
-### GET /api/targets/:userId/analytics/heatmap
-
-Weekly activity heatmap — 7×24 grid of event counts.
-
-### GET /api/targets/:userId/analytics/daily
-
-`?days=30`
-
-Array of pre-computed daily summaries (newest first). Each row includes `total_active_minutes` = `online + idle + dnd`.
-
-### GET /api/targets/:userId/analytics/music
-
-`?days=30`
-
-Spotify profile — top artists, top songs, total listening time, recent track.
-
-### GET /api/targets/:userId/analytics/typing
-
-Ghost typing stats — total typing events, ghost count, ghost rate, average delay.
-
----
-
-## Insights
-
-### GET /api/targets/:userId/insights
-
-Combined overview — all four analyzers in one response.
-
-### GET /api/targets/:userId/insights/sleep
-
-`?days=14`
-
-Estimated bedtime and wake time from offline session patterns. Includes confidence score and weekday/weekend split.
-
-### GET /api/targets/:userId/insights/routine
-
-`?weeks=4`
-
-Weekly routine heatmap with activity summary and current anomalies.
-
-### GET /api/targets/:userId/insights/availability
-
-`?weeks=4`
-
-Four 7×24 probability matrices (online, messaging, voice, gaming). Values 0.0–1.0.
-
-### GET /api/targets/:userId/insights/anomalies
-
-`?days=7`
-
-Detected behavioral deviations sorted newest first. Types: `UNUSUAL_HOUR`, `HIGH_MESSAGE_VOLUME`, `LOW_MESSAGE_VOLUME`, `NEW_GAME`, `PROFILE_CHANGE`, `GHOST_TYPE_SPIKE`.
+Keepalive `: ping` comments are sent every 25 seconds to prevent connection drops.
 
 ---
 
 ## Messages
 
-### GET /api/targets/:userId/messages
+### `GET /api/targets/:userId/messages`
+Query collected messages.
 
-`?search=text&limit=100&offset=0`
+**Query params:** `search`, `channelId`, `guildId`, `since`, `until`, `source`, `category`, `limit` (max 500), `offset`
 
-All messages, with optional full-text search.
+### `GET /api/targets/:userId/messages/deleted`
+Messages captured before deletion. Limit max 500.
 
-### GET /api/targets/:userId/messages/deleted
-
-Messages where `deleted_at IS NOT NULL`.
-
-### GET /api/targets/:userId/messages/edited
-
-Messages where `edited_at IS NOT NULL`. Includes `edit_history` array.
+### `GET /api/targets/:userId/messages/edited`
+Messages that were edited (includes edit history). Limit max 500.
 
 ---
 
-## Profiles
+## Profile
 
-### GET /api/targets/:userId/profile/current
+### `GET /api/targets/:userId/profile/current`
+Latest profile snapshot.
 
-Most recent profile snapshot.
+### `GET /api/targets/:userId/profile/history`
+Profile snapshot history showing all detected changes. Limit max 200, default 50.
 
-### GET /api/targets/:userId/profile/history
+---
 
-`?limit=50`
+## Timeline
 
-All snapshots in reverse chronological order.
+### `GET /api/targets/:userId/timeline`
+Unified timeline combining events and sessions.
+
+**Query params:** `type`, `event_types` (comma-separated), `since`, `until`, `search`, `limit` (max 1000), `offset`
+
+### `GET /api/targets/:userId/timeline/day/:date`
+All events and sessions for a single day. Date format: `YYYY-MM-DD`.
+
+### `GET /api/targets/:userId/timeline/range`
+Date-range Gantt view (max 30 days). Requires `from` and `to` query params (`YYYY-MM-DD`).
+
+---
+
+## Analytics
+
+All analytics endpoints accept a `days` query param (1–365) unless noted otherwise.
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/targets/:userId/analytics/presence` | Status breakdown by time, platform split, total active minutes |
+| `GET /api/targets/:userId/analytics/activities` | Gaming profile — top games, session durations, activity patterns |
+| `GET /api/targets/:userId/analytics/messages` | Communication style — volume, length, deletion rate, ghost-type rate |
+| `GET /api/targets/:userId/analytics/voice` | Voice habits — total time, top channels, co-participants |
+| `GET /api/targets/:userId/analytics/social` | Social graph relationships |
+| `GET /api/targets/:userId/analytics/heatmap` | Activity heatmap by hour/day of week. Uses `weeks` param (1–52) |
+| `GET /api/targets/:userId/analytics/daily` | Daily summary rows |
+| `GET /api/targets/:userId/analytics/music` | Spotify profile — top tracks, artists, listening hours |
+| `GET /api/targets/:userId/analytics/categories` | Message category breakdown |
+| `GET /api/targets/:userId/analytics/baselines` | Behavioral baselines for anomaly detection |
+| `GET /api/targets/:userId/analytics/typing` | Typing statistics (ghost-type rate, delay distributions) |
+| `POST /api/targets/:userId/analytics/baselines/recompute` | Trigger baseline recomputation |
+
+### Target Config
+
+`GET /api/targets/:userId/config` — get analytics weights and anomaly threshold
+`PATCH /api/targets/:userId/config` — update `social_weight_messages`, `social_weight_reactions`, `social_weight_voice_hours`, `social_weight_mentions`, `anomaly_z_threshold`
+
+---
+
+## Insights
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/targets/:userId/insights` | All insights combined |
+| `GET /api/targets/:userId/insights/sleep` | Inferred sleep schedule |
+| `GET /api/targets/:userId/insights/routine` | Detected routine patterns |
+| `GET /api/targets/:userId/insights/availability` | Predicted availability windows |
+| `GET /api/targets/:userId/insights/anomalies` | Behavioral anomaly events |
+| `GET /api/targets/:userId/insights/correlations` | Event co-occurrence correlations |
+
+---
+
+## Social Graph
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/targets/:userId/social/relationships` | All classified relationships (rule-based + AI) |
+| `GET /api/targets/:userId/social/relationships/:otherId` | Deep-dive for a specific pair |
+| `POST /api/targets/:userId/social/analyze` | Trigger AI re-analysis (returns 202, runs async) |
+| `GET /api/targets/:userId/social/changes` | Relationship arc changes over time |
 
 ---
 
 ## Alerts
 
-### GET /api/alerts/rules
+### `GET /api/alerts/rules`
+List all alert rules.
 
-All configured alert rules.
-
-### POST /api/alerts/rules
-
-Create a new alert rule.
+### `POST /api/alerts/rules`
+Create an alert rule.
 
 **Body:**
 ```json
 {
   "targetId": "123456789012345678",
   "ruleType": "COMES_ONLINE",
-  "condition": {}
+  "condition": {},
+  "digestMode": false,
+  "fatigueThreshold": 20,
+  "compositeCondition": null
 }
 ```
 
-`targetId` is optional — omit for a global rule applying to all targets.
+**Available rule types:**
+`COMES_ONLINE`, `GOES_OFFLINE`, `STARTS_ACTIVITY`, `STOPS_ACTIVITY`, `JOINS_VOICE`, `LEAVES_VOICE`, `SENDS_MESSAGE`, `DELETES_MESSAGE`, `GHOST_TYPES`, `STATUS_CHANGE`, `PROFILE_CHANGE`, `UNUSUAL_HOUR`, `NEW_GAME`, `KEYWORD_MENTION`
 
-**Rule types and conditions:**
+### `DELETE /api/alerts/rules/:id`
+Delete a rule.
 
-| Rule Type | Condition |
-|-----------|-----------|
-| `COMES_ONLINE` | `{ "after_hour": 22 }` (optional) |
-| `GOES_OFFLINE` | `{}` |
-| `STATUS_CHANGE` | `{ "field": "transition", "value": "online->dnd" }` (optional) |
-| `STARTS_ACTIVITY` | `{ "value": "Valorant" }` (optional substring match) |
-| `STOPS_ACTIVITY` | `{ "value": "Valorant" }` (optional) |
-| `JOINS_VOICE` | `{ "field": "guildId", "value": "..." }` (optional) |
-| `LEAVES_VOICE` | `{}` |
-| `SENDS_MESSAGE` | `{ "field": "channelId", "value": "..." }` (optional) |
-| `DELETES_MESSAGE` | `{}` |
-| `GHOST_TYPES` | `{}` |
-| `PROFILE_CHANGE` | `{}` |
-| `UNUSUAL_HOUR` | `{ "start_hour": 2, "end_hour": 6 }` |
-| `NEW_GAME` | `{}` |
-| `KEYWORD_MENTION` | `{ "value": "keyword1,keyword2" }` |
+### `PATCH /api/alerts/rules/:id`
+Toggle a rule enabled/disabled.
 
-### DELETE /api/alerts/rules/:id
+### `GET /api/alerts/history`
+Alert history. Params: `limit` (max 500), `offset`, `targetId`.
 
-Delete an alert rule.
+### `PATCH /api/alerts/history/:id/ack`
+Acknowledge an alert.
 
-### GET /api/alerts/history
+### `GET /api/alerts/rules/suppressed`
+List auto-suppressed rules.
 
-`?targetId=...&limit=50&offset=0`
+### `POST /api/alerts/rules/:id/unsuppress`
+Manually unsuppress a rule and reset its fire count.
 
-Fired alerts with acknowledgment status.
+### `POST /api/alerts/test`
+Send a test webhook notification.
 
-### PATCH /api/alerts/history/:id/ack
+---
 
-Mark an alert as acknowledged.
+## Backfill
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/targets/:userId/backfill/progress` | Progress summary + per-channel breakdown |
+| `POST /api/targets/:userId/backfill/start` | Start or resume backfill (202 Accepted) |
+| `POST /api/targets/:userId/backfill/custom` | Custom backfill with `mode`: `new_channels` or `full_reset` |
+| `POST /api/targets/:userId/backfill/pause` | Pause an in-progress backfill |
+
+---
+
+## Daily Briefs
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/targets/:userId/briefs` | Brief history. `limit` max 365, default 30 |
+| `GET /api/targets/:userId/briefs/:date` | Brief for a specific date (`YYYY-MM-DD`) |
+| `POST /api/targets/:userId/briefs/generate` | Generate brief for today (or `?date=YYYY-MM-DD`) |
+
+---
+
+## Runtime Config
+
+### `GET /api/config`
+Get all runtime-reloadable configuration values. Sensitive values (tokens, keys) are masked.
+
+### `PATCH /api/config`
+Update a single config key at runtime without restarting.
+
+**Body:**
+```json
+{ "key": "ALERT_DIGEST_MODE", "value": "true" }
+```
+
+Hot-reloadable keys include all polling intervals, AI settings, backfill settings, alert settings, and brief generation time. Core keys (`DISCORD_TOKEN`, `DB_MODE`, etc.) require a restart and cannot be changed via this endpoint.
 
 ---
 
 ## Export
 
-### GET /api/export/:userId
+### `GET /api/export/:userId`
+Export all data for a target as a single JSON object containing events, messages, presence/activity/voice sessions, profile snapshots, reactions, typing events, and daily summaries.
 
-Full JSON export of all data for a target.
+### `GET /api/export/:userId/csv`
+Export events as a CSV file. Includes CSV-injection protection (formula characters prefixed with `'`).
 
-### GET /api/export/:userId/csv
+---
 
-CSV export of all events. Sets `Content-Disposition: attachment` header.
+## Common Patterns
+
+### Timestamps
+All timestamps are Unix milliseconds (`Date.now()` in JavaScript, or `EXTRACT(EPOCH FROM NOW()) * 1000` in SQL).
+
+### Pagination
+Most list endpoints accept `limit` and `offset`. Default limits vary by endpoint (typically 50–100). Hard caps noted above.
+
+### Async operations
+Backfill start, brief generation, and social graph analysis return `202 Accepted` immediately and run in the background. Poll the progress/result endpoints to check completion.
