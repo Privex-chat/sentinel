@@ -125,7 +125,11 @@ Type commands in any Discord channel. The command message is deleted **immediate
 | [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Seamless remote access bridge for externally hosted setups (Windows). | ✅ Stable |
 | [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Full-featured browser dashboard. Monitor from anywhere. | ✅ Stable |
 | [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Multi-server intelligence network using a proper bot token. | 🔧 In Development |
+<<<<<<< Updated upstream
 | [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Electron app bundling selfbot + web dashboard into a single Windows installer. | 🧪 Beta |
+=======
+| [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Electron app bundling selfbot + web dashboard into a single Windows installer. | ✅ Stable |
+>>>>>>> Stashed changes
 
 ---
 
@@ -144,10 +148,12 @@ sentinel-selfbot
        ├── AI analysis → social graph, message categories, daily briefs
        └── Fastify HTTP API (:48923) + SSE stream
               │
-    ┌─────────┼──────────────────┐
-    ▼         ▼                  ▼
-sentinel-  sentinel-proxy   sentinel-web
- plugin   (Windows bridge)  (any browser)
+    ┌─────────┼──────────────────┬──────────────┐
+    ▼         ▼                  ▼              ▼
+sentinel-  sentinel-proxy   sentinel-web   sentinel-desktop
+ plugin   (Windows bridge)  (any browser)  (Electron app — bundles
+                                            selfbot + web in one
+                                            Windows installer)
 ```
 
 1. **Collection** — Continuous event ingestion from Discord's gateway. Op 14 subscriptions push presence changes (including offline) in real time for tracked users.
@@ -186,6 +192,7 @@ The message deletes instantly. Tracking starts within 5 seconds.
 | Everything local | selfbot + plugin. No proxy needed. |
 | Selfbot on VPS/Railway, plugin on local Discord | selfbot (remote) + proxy (local Windows) + plugin |
 | Browser access from anywhere | selfbot (anywhere) + sentinel-web |
+| **Windows one-click install** | **sentinel-desktop — bundles selfbot + dashboard, no terminal needed** |
 | All interfaces | selfbot + proxy + plugin + web |
 
 **Recommended for 24/7:** Deploy the selfbot on Railway, access data via the web panel at [sentinel-panel.vercel.app](https://sentinel-panel.vercel.app).
@@ -241,4 +248,4 @@ Copyright © 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gm
 - [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) — Windows local proxy.
 - [sentinel-web](https://github.com/Privex-chat/sentinel-web) — Browser dashboard.
 - [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) — Community intelligence bot (in development, proprietary).
-- [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) — Electron desktop app (in development).
+- [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) — Electron desktop app (Windows installer).
