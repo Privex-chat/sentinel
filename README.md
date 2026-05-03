@@ -125,7 +125,7 @@ Type commands in any Discord channel. The command message is deleted **immediate
 | [sentinel-proxy](https://github.com/Privex-chat/sentinel-proxy) | Seamless remote access bridge for externally hosted setups (Windows). | ✅ Stable |
 | [sentinel-web](https://github.com/Privex-chat/sentinel-web) | Full-featured browser dashboard. Monitor from anywhere. | ✅ Stable |
 | [sentinel-bot](https://github.com/Privex-chat/sentinel-bot) | Multi-server intelligence network using a proper bot token. | 🔧 In Development |
-| [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Electron app bundling selfbot + web dashboard into a single Windows installer. | 🔧 In Development |
+| [sentinel-desktop](https://github.com/Privex-chat/sentinel-desktop) | Electron app bundling selfbot + web dashboard into a single Windows installer. | 🧪 Beta |
 
 ---
 
@@ -226,6 +226,7 @@ Licensing varies by component:
 | sentinel-plugin | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) |
 | sentinel-proxy | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) |
 | sentinel-web | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) |
+| sentinel-desktop | [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) |
 | sentinel-bot | **Proprietary** — Source visible for transparency. No rights to use, copy, modify, distribute, or fork. See [sentinel-bot-LICENSE](sentinel-bot-LICENSE). |
 
 Copyright © 2026–present Hemansh ([privexchat@gmail.com](mailto:privexchat@gmail.com))
