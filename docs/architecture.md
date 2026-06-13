@@ -55,12 +55,12 @@ The engine. It:
 - Sends op 14 (GUILD_SUBSCRIBE) with `members` arrays to subscribe to real-time presence for tracked users in each mutual guild
 - Dispatches incoming events to collector functions (presence, activity, message, voice, profile, etc.)
 - Handles self-commands from the selfbot's own account — deletes command messages instantly, executes actions, sends self-deleting responses
-- Writes all observed data to a local SQLite database
-- Runs periodic REST pollers for data not available via gateway (full profiles, connected accounts, mutual server lists)
-- Evaluates alert rules on every event
-- Optionally runs AI analysis: message categorisation, social graph classification, daily briefs
-- Serves all collected data through a Fastify HTTP server
-- Pushes live events to connected UI clients over SSE
+- Writes all observed data to a local SQLite database with per-target IANA timezone (schema v7+)
+- Runs a single **consolidated target-profile poller** for data not available via gateway. One Discord REST request per target per cycle drives profile, mutual-guild, and connected-account diffs. Per-target failure counter alerts via critical webhook + halves cadence after 5 consecutive failures.
+- Evaluates alert rules on every event — `UNUSUAL_HOUR` and `COMES_ONLINE after_hour` match against each target's own timezone
+- Optionally runs AI analysis: message categorisation, social graph classification, daily briefs. AI provider calls are serialised so concurrent analysers can't race a provider's rate limit (e.g. Gemini 15 RPM)
+- Serves all collected data through a Fastify HTTP server with rate limiting, CORS allowlist, and a global error handler
+- Pushes live events to connected UI clients over SSE — clients can pass `?since=<lastEventId>` on reconnect to replay buffered events
 - Optionally mirrors the local SQLite to a Supabase PostgreSQL instance
 
 ### sentinel-plugin
@@ -170,19 +170,43 @@ handleSelfCommand() — checks message.author.id === selfbot user ID
 
 ### Periodic Data (Pollers)
 
+There are now **two** pollers (down from four — see the consolidation note below):
+
+- **`status-poller`** — every 2 min (configurable). Sends `REQUEST_GUILD_MEMBERS` (op 8) with `presences: true` to confirm/refresh the active status of tracked targets in each mutual guild. Used only as a confirmation channel for the event-driven op 14 stream.
+- **`target-profile-poller`** — every 5 min (configurable). One REST call to `/users/{id}/profile?with_mutual_guilds=true` per target per cycle drives three in-process diffs against the last SQLite snapshot:
+
 ```
-setInterval fires (every 5 min for profiles, 2 min for status confirmation)
+setInterval fires (every 5 min)
         │
         ▼
-discordFetch() — rate-limit aware REST call with browser headers
+discordFetch() — rate-limit aware REST call with full browser headers
         │
         ▼
-diff against last snapshot in SQLite
+┌───────────────────────────────────────────────┐
+│  Three diffs against last snapshot in SQLite  │
+│  ───────────────────────────────────────────  │
+│  1. Profile snapshot (username, avatar, bio…) │
+│     → PROFILE_UPDATE / AVATAR_CHANGE /        │
+│       USERNAME_CHANGE events                  │
+│  2. Mutual guild list                         │
+│     → SERVER_JOIN / SERVER_LEAVE events       │
+│  3. Connected accounts                        │
+│     → ACCOUNT_CONNECTED /                     │
+│       ACCOUNT_DISCONNECTED events             │
+└───────────────────────────────────────────────┘
         │
-   if changed:
+   if anything changed:
         ▼
 insertSnapshot() + insertEvent() + pushSSEEvent()
+        │
+   on failure:
+        ▼
+recordFailure() — at 5 consecutive failures: critical webhook +
+                  per-target half-cadence backoff. First success
+                  after backoff sends a recovery notice.
 ```
+
+Failure isolation is per target — one broken target doesn't collapse the entire signal pipeline.
 
 ### Analytics Requests
 
@@ -207,7 +231,7 @@ All data lives in a single SQLite file (`sentinel.db`). Key tables:
 
 | Table | Purpose |
 |---|---|
-| `targets` | Tracked user IDs, labels, notes, priority, active flag |
+| `targets` | Tracked user IDs, labels, notes, priority, active flag, **`timezone`** (IANA, v7+) |
 | `events` | Append-only log of every observed event with typed data |
 | `presence_sessions` | Open/closed status sessions with platform and duration |
 | `activity_sessions` | Game, Spotify, streaming, custom status sessions |
@@ -217,18 +241,24 @@ All data lives in a single SQLite file (`sentinel.db`). Key tables:
 | `reactions` | Reaction add/remove with emoji metadata |
 | `profile_snapshots` | Timestamped profile snapshots for change diffing |
 | `guild_member_events` | Nickname and role changes |
-| `alert_rules` | Configured alert conditions with fatigue tracking |
-| `alert_history` | Fired alerts with acknowledgement state |
+| `alert_rules` | Configured alert conditions with fatigue tracking, FK to `targets` (v6+) |
+| `alert_history` | Fired alerts with acknowledgement state (FK `ON DELETE SET NULL`, v4+) |
 | `daily_summaries` | Pre-computed daily stat rows per target |
 | `daily_briefs` | AI-generated daily intelligence briefs |
 | `relationship_analysis` | AI-classified relationship pairs with confidence scores |
+| `relationship_history` | Timeline of classification changes per pair |
 | `behavioral_baselines` | Per-target metric baselines for anomaly detection |
+| `target_config` | Per-target social-graph weights + anomaly z-threshold |
 | `message_categories` | AI-assigned message category tags |
 | `backfill_progress` | Per-channel backfill state tracking |
 | `sync_state` | Supabase sync watermarks |
-| `heartbeat_log` | Process health timestamps for stale session recovery |
+| `runtime_config` | Hot-reloadable settings (encrypted at rest with `SENTINEL_DATA_KEY`) |
+| `heartbeat_log` | Process health timestamps for stale-session recovery |
+| `schema_version` | Highest applied migration version (current: **7**) |
 
-SQLite is used instead of Postgres because Sentinel is a single-operator tool. WAL mode with a 64MB cache handles tens of millions of rows comfortably with no separate database process, trivial backup (copy the file), and trivial deployment.
+SQLite is used instead of Postgres because Sentinel is a single-operator tool. WAL mode with a 64MB cache and 5-second `busy_timeout` handles tens of millions of rows comfortably with no separate database process, trivial backup (copy the file), and trivial deployment.
+
+**Periodic integrity sweeps** (running on the daily-summary interval) cap any session left open longer than 48 h at `start_time + 48h` so abandoned sessions (e.g. from a gateway disconnect we never recovered from) don't poison analytics.
 
 ---
 
@@ -236,9 +266,17 @@ SQLite is used instead of Postgres because Sentinel is a single-operator tool. W
 
 The selfbot exposes a Fastify HTTP server on port `48923` by default.
 
-All endpoints require an `Authorization` header matching `API_AUTH_TOKEN` from `.env`. Requests without a valid token receive `401`.
+All `/api/*` endpoints require an `Authorization: Bearer <token>` header matching `API_AUTH_TOKEN` from `.env`. Comparison is constant-time. Requests without the header receive `401`; a mismatched token gets `403`.
 
-Live events are delivered over SSE at `GET /api/events/stream`. The plugin and web dashboard maintain persistent connections to this endpoint and react to incoming events by invalidating local caches and triggering UI refetches.
+`/health` is an unauthenticated liveness probe — useful for Railway/Fly/uptime monitors that can't carry the API token.
+
+CORS is enforced via an allowlist (`API_CORS_ORIGINS` env), defaulting to the hosted Vercel panel plus common localhost dev ports. A literal `*` opts into reflect-any.
+
+Rate limiting (default 300 req/min/IP) protects against runaway clients. SSE counts as one request (the connection holds open without consuming the budget per event); `/health` is allowlisted.
+
+Live events are delivered over SSE at `GET /api/events/stream`. Each frame carries a monotonic `id:` line so a reconnecting client can pass `?since=<lastEventId>` to replay the 500-entry in-memory buffer. The plugin and web dashboard maintain persistent connections to this endpoint and react to incoming events by invalidating local caches and triggering UI refetches.
+
+The bulk data exporter `GET /api/export/:userId` streams **NDJSON** (one row per line, section-framed) so multi-million-row exports don't OOM the process.
 
 Full API reference: [api.md](api.md)
 
@@ -271,3 +309,15 @@ Full Supabase setup: [supabase.md](supabase.md)
 **Fastify over Express** — Lower per-request overhead, built-in schema validation, better TypeScript types. Measurably faster for the high-frequency status and timeline endpoints.
 
 **Browser fingerprint consistency** — The gateway IDENTIFY payload and REST headers (`User-Agent`, `X-Super-Properties`, `X-Discord-Locale`) use identical browser profile data, chosen once per process startup. This makes the selfbot's traffic indistinguishable from a real browser session. With `RANDOM_JITTER=true`, the profile is randomised per process restart across a pool of real browser fingerprints.
+
+**Per-target IANA timezone** — Every hour/day-of-week analyser (sleep schedule, routine heatmap, behavioral baseline DOW computation, `UNUSUAL_HOUR` / `COMES_ONLINE after_hour` alerts, daily brief day labels) takes the target's timezone into account. The previous host-local-time approach silently produced wrong results on any selfbot host not running in UTC; v7+ stores the zone per target, defaulting to UTC for back-compat. Set on `POST /api/targets`, `PATCH /api/targets/:userId`, or via the `$tz` self-command.
+
+**Consolidated profile poller with failure isolation** — Three earlier pollers (profile, mutual-servers, connected-accounts) all hit `/users/{id}/profile?with_mutual_guilds=true` at independent cadences, producing 3× wasted Discord requests on the path Discord's abuse heuristics weight most heavily. They are now one poller that runs each cycle and fans out three diffs in-process. A per-target consecutive-failure counter sends a critical webhook + halves cadence after 5 strikes, recovers cleanly on first success.
+
+**Backfill hard-cancel on target removal** — Deleting a target while a backfill is in flight used to cause minutes of FK-failing inserts against the cascaded-deleted `target_id`. `target-lifecycle.onTargetRemoved` now sets a cancellation flag the loop checks at every page/channel/guild boundary; the queue entry (if any) is dropped before draining.
+
+**Voice session reconciliation** — Discord force-disconnects offline users from voice but the `VOICE_STATE_UPDATE` with null `channel_id` isn't always delivered during a gateway disconnect. Two reconcilers close abandoned sessions: (1) any `→ offline` presence transition closes the target's open voice session with reason `presence→offline`; (2) on `RESUMED`, every open voice session whose target is cached as offline is closed with reason `RESUMED reconcile (cached offline)`. A 48 h abandoned-session sweep is the final safety net.
+
+**NDJSON streaming export** — `/api/export/:userId` used to build the entire export as a single JSON tree in memory then serialise. On a long-lived install that's gigabytes of allocations + a multi-second event-loop stall. The endpoint now streams NDJSON via `better-sqlite3.iterate()` — only one row in memory at a time, regardless of table size.
+
+**Gemini single-flight mutex** — Concurrent analysers (categorizer + social graph + brief generator) used to race the rate gate, blowing past Gemini's 15 RPM cap. A module-level promise chain serialises every `complete()` call regardless of caller. Failure of one request doesn't poison the chain.

@@ -54,7 +54,9 @@ The API server starts on port `48923` by default.
 |---|---|---|
 | `DISCORD_TOKEN` | *(required)* | Your Discord account token |
 | `API_PORT` | `48923` | Port the REST API listens on |
-| `API_AUTH_TOKEN` | *(required)* | Secret token for API authentication (use a random 32+ char string) |
+| `API_AUTH_TOKEN` | *(required)* | Secret token for API authentication (use a random 32+ char string). Sent as `Authorization: Bearer <token>` on every `/api/*` request. |
+| `API_CORS_ORIGINS` | *(default allowlist)* | Comma-separated CORS allowlist. Unset → `https://sentinel-panel.vercel.app, http://localhost:5173, http://localhost:3000`. Literal `*` reflects any origin. |
+| `SENTINEL_DATA_KEY` | — | 32-byte base64 AES-256-GCM key for at-rest encryption of sensitive `runtime_config` values (`DISCORD_TOKEN`, `AI_API_KEY`, `SUPABASE_SERVICE_KEY`, webhook URLs). Strongly recommended in `local+cloud` / `cloud` mode. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`. |
 | `DB_PATH` | `./data/sentinel.db` | SQLite database file path |
 | `LOG_LEVEL` | `info` | Logging verbosity: `debug`, `info`, `warn`, `error` |
 | `RANDOM_JITTER` | `false` | Add ±20% jitter to polling intervals; randomise gateway fingerprint |
@@ -233,10 +235,12 @@ Type this in any mutual Discord channel. The message deletes instantly; tracking
 **Via REST API:**
 ```bash
 curl -X POST http://localhost:48923/api/targets \
-  -H "Authorization: your_api_auth_token" \
+  -H "Authorization: Bearer your_api_auth_token" \
   -H "Content-Type: application/json" \
-  -d '{"userId": "123456789012345678"}'
+  -d '{"userId": "123456789012345678", "timezone": "America/New_York"}'
 ```
+
+`timezone` is optional (defaults to `UTC`). Drives every per-target hour/day analyser. Validated against ICU's IANA database — invalid zones return HTTP 400.
 
 **Via the dashboard** — use sentinel-web or the Vencord plugin UI.
 
@@ -261,4 +265,42 @@ npm run build
 pm2 restart sentinel-selfbot   # or restart however you run it
 ```
 
-Database migrations run automatically on startup — no manual steps needed.
+Database migrations run automatically on startup — no manual steps needed. Current schema is **v7** (per-target `targets.timezone` column added). Upgrades from any prior version (v0–v6) are idempotent and apply in order.
+
+For `local+cloud` / `cloud` mode, mirror the new column to your Supabase project by running the latest `supabase-schema.sql` once — its `ALTER TABLE IF NOT EXISTS` clauses make a re-run harmless.
+
+---
+
+## Liveness & Monitoring
+
+`GET /health` is unauthenticated and returns:
+
+```json
+{ "status": "ok", "uptimeMs": 86423154, "gatewayConnected": true }
+```
+
+Point Railway, Fly, or any uptime monitor here — `/health` is rate-limit-allowlisted, so polling it for liveness never consumes the 300 req/min budget.
+
+For deeper health (target count, DB size, event count, uptime) hit `GET /api/status` with your Bearer token.
+
+---
+
+## Running the Test Suite
+
+```bash
+npm test
+```
+
+103 tests across 25 suites cover the timezone helpers, JSON repair, runtime-config validation, alert engine rule matching (all 14 rule types), and target lifecycle. Backed by `node:test` + `tsx` — no external runner. Takes ~20 s on a cold run.
+
+---
+
+## CORS
+
+The API defaults to an allowlist of `https://sentinel-panel.vercel.app`, `http://localhost:5173`, and `http://localhost:3000`. To allow another origin (your own Vercel deployment, an internal subdomain, etc.) set `API_CORS_ORIGINS` to a comma-separated list:
+
+```env
+API_CORS_ORIGINS=https://panel.example.com,http://localhost:3000
+```
+
+A literal `*` reflects any origin — use only when you front the API with your own auth layer.

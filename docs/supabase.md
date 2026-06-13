@@ -36,7 +36,7 @@ Sentinel always uses SQLite as the live working database. When Supabase is enabl
 3. Paste the entire contents into the SQL editor
 4. Click **Run**
 
-You'll see a success message. All 13 tables are created with the correct indexes and RLS disabled.
+You'll see a success message. All tables are created with the correct indexes and RLS disabled. The schema is idempotent — re-run it whenever you upgrade the selfbot to pick up new columns (e.g. v7 added `targets.timezone`).
 
 ---
 
@@ -109,19 +109,43 @@ SELECT * FROM daily_summaries ORDER BY date DESC LIMIT 10;
 
 | Table | Strategy |
 |-------|----------|
-| `targets` | Full sync every cycle (small table) |
+| `targets` | Full sync every cycle (small table) — includes `timezone` column (v7+) |
 | `alert_rules` | Full sync every cycle (small table) |
 | `events` | New rows by ID, up to 5,000 rows per cycle |
 | `presence_sessions` | New rows + re-sync rows opened in last 1 hour |
 | `activity_sessions` | Same as presence_sessions |
 | `voice_sessions` | Same as presence_sessions |
-| `messages` | All messages created/edited/deleted since last sync |
+| `messages` | Created/edited/deleted within the last 7 days since last sync watermark |
 | `typing_events` | New rows + re-sync recent rows |
 | `reactions` | New rows + re-sync recent rows |
 | `profile_snapshots` | New rows + re-sync recent rows |
 | `guild_member_events` | New rows only |
 | `alert_history` | New rows + re-sync recent rows |
-| `daily_summaries` | Last 7 days always re-synced (updated hourly in-place) |
+| `daily_summaries` | **Today + yesterday only** (tightened from 7 days). `computeDailySummaries` only writes today's row; the 2-day window catches the final pre-midnight value if the process restarted overnight. |
+| `relationship_analysis` | New rows by ID |
+| `relationship_history` | New rows by ID |
+| `daily_briefs` | Watermarked by `generated_at` |
+| `backfill_progress` | Watermarked by `COALESCE(completed_at, started_at)` |
+| `behavioral_baselines` | Watermarked by `computed_at` |
+| `target_config` | Watermarked by `updated_at` |
+| `message_categories` | Watermarked by `categorized_at` |
+| `runtime_config` | Watermarked by `updated_at`; per-instance `_internal_*` keys are filtered out so multiple bots sharing one Supabase project don't cross-contaminate. Sensitive values arrive encrypted (`enc:v1:` envelope) when `SENTINEL_DATA_KEY` is set — Supabase only ever sees ciphertext. |
+
+---
+
+## Encrypting Secrets at Rest
+
+Sensitive `runtime_config` values — `DISCORD_TOKEN`, `AI_API_KEY`, `SUPABASE_SERVICE_KEY`, `ALERT_WEBHOOK_URL`, `CRITICAL_WEBHOOK_URL` — are stored in the `runtime_config` table whenever you update them through the dashboard (`PATCH /api/config`) or `$reload`. In `local+cloud` / `cloud` mode they're then mirrored to Supabase, which means a leaked Supabase service key would also leak your Discord token unless you encrypt those values at rest.
+
+Set a 32-byte base64 key in `.env`:
+
+```env
+SENTINEL_DATA_KEY=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64'))")
+```
+
+Once set, all writes through `setRuntimeConfig` are AES-256-GCM encrypted before they hit SQLite (and therefore before they reach Supabase). The selfbot logs a loud warning at startup if `DB_MODE=local+cloud` / `cloud` and the key is missing — values would otherwise sync in plaintext.
+
+Treat the key like any other secret. Losing it makes existing `enc:v1:`-prefixed rows unreadable; rotating it requires re-writing every encrypted row through `PATCH /api/config` so the new key takes effect. Legacy plaintext rows continue to work — encryption is upgraded lazily on next write.
 
 ---
 

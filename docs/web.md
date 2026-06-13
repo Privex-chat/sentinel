@@ -87,11 +87,19 @@ Click any target card to open their full profile. Tabs:
 
 ### Real-Time Updates
 
-The web app maintains a persistent SSE connection to your selfbot. Events arrive in real time and automatically update the live feed and relevant analytics.
+The web app maintains a persistent SSE connection to your selfbot. Events arrive in real time and automatically update the live feed and relevant analytics. On reconnect after a brief network blip, the panel passes `?since=<lastEventId>` so the selfbot replays buffered events from its 500-entry in-memory ring buffer — you don't miss events that fired during the dead window.
 
 ### Search and Filtering
 
-The Targets page supports search by username, display name, or label. The Timeline tab supports filtering by event type.
+The Targets page supports search by username, display name, or label. The Timeline tab supports filtering by event type. Server-side LIKE patterns (`%`, `_`) coming from the search box are escaped — a single `%` no longer triggers a full-table scan against the `data`/`content` columns.
+
+### Per-Target Timezone
+
+The Add Target form accepts an optional IANA timezone (defaults to the browser's detected zone, e.g. `America/New_York`). Sleep schedule, routine heatmap, and `UNUSUAL_HOUR` / `COMES_ONLINE after_hour` alert evaluation all run in that zone server-side. Edit it later from the target's settings or via the `$tz` self-command.
+
+### Streaming Export
+
+The full per-target export endpoint streams **NDJSON** (one row per line, framed by `_section` markers). The panel's `api.downloadExport(userId)` triggers a browser file-save without parsing megabytes of JSON on the main thread; `api.exportData(userId)` parses the stream into a `{ section: rows[] }` map for in-memory use. Multi-million-row exports complete without crashing the browser or the selfbot.
 
 ---
 
@@ -136,10 +144,10 @@ This gives you access to your tracking data from any device, anywhere.
 
 **"Connection Failed" after entering URL and token**
 
-- Confirm the selfbot is running
+- Confirm the selfbot is running (hit `GET /health` unauthenticated to check — should return `{"status":"ok",...}`)
 - Confirm the URL is correct (include the port: `http://localhost:48923`)
 - If using HTTPS, make sure your SSL certificate is valid
-- Check that the selfbot's CORS config allows your browser's origin
+- Check that the selfbot's CORS allowlist includes your panel's origin. The selfbot ships with `https://sentinel-panel.vercel.app`, `http://localhost:5173`, and `http://localhost:3000` allowed by default. For any other origin set `API_CORS_ORIGINS` on the selfbot.
 
 **Live feed not updating**
 
@@ -149,7 +157,17 @@ This gives you access to your tracking data from any device, anywhere.
 **Data looks stale**
 
 - Click the **Reconnect** button in Settings to force a fresh connection
-- The SSE connection may have dropped — refreshing the page re-establishes it
+- The SSE connection may have dropped — refreshing the page re-establishes it; the selfbot's `?since=<id>` replay catches anything that fired during the dead window (if within the 500-event buffer)
+
+**HTTP 429 / rate-limited**
+
+- The selfbot enforces 300 req/min/IP. Closing idle dashboard tabs that share the same egress IP usually clears it
+- The 429 response carries a `Retry-After` header — the panel honours it automatically
+- `/health` is allowlisted from the rate limit, so liveness probes don't burn the budget
+
+**"Internal server error" with a `requestId`**
+
+- The selfbot now returns generic `{ error: "Internal server error", requestId: "..." }` for unhandled errors instead of leaking the underlying message. The full detail (with stack) is in the selfbot's logs keyed by that `requestId` — grep your logs for it.
 
 **Can't access local selfbot from another device**
 

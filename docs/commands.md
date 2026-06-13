@@ -75,12 +75,35 @@ $label @someuser best friend
 #### `$note <@user> <text>`
 Append a timestamped note to a target's notes field. Each note is prefixed with `[YYYY-MM-DD HH:MM]` in local time. Multiple notes accumulate — existing notes are never overwritten.
 
+The cumulative notes field is capped at **4000 characters** to keep the column from growing unbounded across `getAllTargets` responses (the dashboard hits that on every refresh). When an append would exceed the cap, the command refuses and reports the current size — trim old entries via the API (`PATCH /api/targets/:userId` with a smaller `notes` body) before adding more.
+
 **Example:**
 ```
 $note @someuser went quiet around the same time as before
 ```
 
 **Response TTL:** 4 s
+
+---
+
+#### `$tz <@user> [Area/City]`
+Set or show the target's IANA timezone. Drives every per-target hour/day analyser — sleep schedule, routine heatmap, behavioral baselines (day-of-week metrics), and the `UNUSUAL_HOUR` / `COMES_ONLINE after_hour` alert matchers. Defaults to `UTC` for targets created before schema v7 or without a `timezone` body field on creation.
+
+**Show the current zone:**
+```
+$tz @someuser
+🌍 123456789012345678 timezone: America/New_York
+```
+
+**Set a new zone:**
+```
+$tz @someuser Europe/London
+🌍 123456789012345678 timezone set: UTC → Europe/London
+```
+
+Aliases: `$timezone` works the same. The value is validated against ICU's IANA zone database — typos return an error and the row is not updated.
+
+**Response TTL:** 4–7 s
 
 ---
 
@@ -243,6 +266,8 @@ Gateway:    ✅ `a3f8c1d2e0...` (61 ms)
 #### `$reload`
 Reload alert rules and runtime configuration from the database without restarting the selfbot. Equivalent to calling `PATCH /api/config` for each key and then triggering a rule reload.
 
+Also re-fires every registered `onConfigChange` listener using the current in-memory value of each key — that means `$reload` will reconnect the gateway if `DISCORD_TOKEN` changed, reset the AI provider if `AI_PROVIDER` / `AI_MODEL` / `AI_API_KEY` / `AI_BASE_URL` changed, reschedule daily briefs if `BRIEF_GENERATION_TIME` changed, and reschedule digest flushing / AI analysis interval if those changed. Earlier versions of `$reload` only updated the in-memory config without applying these side-effects.
+
 **Response TTL:** 5 s
 
 ---
@@ -262,5 +287,6 @@ If a command throws an error, the selfbot sends a `⚠️ Command failed: ...` m
 
 - All commands work in **guild channels, DMs with yourself, or your own private servers**
 - Rate limiting on `$add` mirrors the API route (15 minutes between new targets) to protect the account
-- The `$remove` command deletes all database records for the target. Use `$pause` / `$resume` to preserve history
-- `$reload` does not reconnect the gateway — use it only for config/rule changes, not for credential updates
+- The `$remove` command deletes all database records for the target via SQL `ON DELETE CASCADE` and also hard-cancels any in-flight backfill at the next loop checkpoint, so deleting a target while their backfill is running no longer produces minutes of FK-failing inserts. Use `$pause` / `$resume` to preserve history.
+- `$reload` now fires every `onConfigChange` listener — so it CAN reconnect the gateway (when `DISCORD_TOKEN` was changed via `PATCH /api/config`) and reset the AI provider. Earlier docs said it didn't; that was true of older versions.
+- `$pattern` and the time fields in `$status` / `$seen` / `$streak` / `$history` / `$uptime` render in the **selfbot host's local time**, not the target's timezone. Per-target tz is currently used only by the analytics + alerts pipelines (sleep schedule, routine heatmap, baselines, `UNUSUAL_HOUR`, `COMES_ONLINE after_hour`). Run the equivalent dashboard view if you need target-local hours in a UI.

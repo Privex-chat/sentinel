@@ -133,6 +133,19 @@ If a target was offline before the selfbot connected and never comes online, the
 
 During a gateway reconnect or resume, any status changes that happened while the connection was down are missed. The reconnect flow re-requests all presences immediately, so the gap is bounded by the reconnect duration (typically seconds for resumes, up to a minute for full reconnects).
 
+### Voice session reconciliation
+
+A `VOICE_STATE_UPDATE` with `channel_id: null` (voice leave) isn't always delivered during a gateway disconnect — but Discord force-disconnects offline users from voice unconditionally. Sentinel closes voice sessions defensively in two places:
+
+1. **On any `→ offline` presence transition.** The target's open voice session (if any) is force-closed with a synthetic `VOICE_LEAVE` event tagged `reason: "presence→offline"`. Catches the common "user went offline mid-disconnect" case.
+2. **On `RESUMED`.** Every open voice session is scanned; any whose target is cached as offline is closed with `reason: "RESUMED reconcile (cached offline)"`. Online/idle/dnd targets are left alone — they're likely still in voice and a `VOICE_STATE_UPDATE` will reconcile.
+
+A periodic safety net (running on the daily-summary interval) caps any session left open longer than 48 h at `start_time + 48h` so abandoned sessions can't poison analytics.
+
+### Typing timers across disconnects
+
+Pending ghost-type timers (15 s timeouts armed when a `TYPING_START` fires but no matching `MESSAGE_CREATE` arrives) are cancelled on every gateway `close` event. Without this, a timer armed just before a disconnect would still fire on reconnect and record a false `GHOST_TYPE` for a message the selfbot couldn't have observed.
+
 ---
 
 ## Data Flow Summary

@@ -39,13 +39,16 @@ Sentinel is a **self-hosted Discord intelligence system** that turns raw activit
 |---|---|
 | 🟢 **Real-Time Presence Tracking** | Event-driven via Discord's gateway op 14 — status and platform changes delivered instantly, including offline, with no polling lag |
 | 🧭 **Full Behavioural Tracking** | Presence, activities, messages, edits, deletions, voice, reactions, and interaction timelines |
+| 🌐 **Per-Target Timezone** | Sleep schedule, routine heatmap, baseline DOW metrics, and `UNUSUAL_HOUR` / `COMES_ONLINE after_hour` alerts all run in each target's own IANA timezone — set with `$tz` or in the dashboard |
 | 🖥️ **Self-Command System** | Manage tracking directly from Discord — messages delete instantly, no trace remains in the channel |
 | 🏷️ **AI Message Categorisation** | Instantly classifies messages into context-rich categories (gaming, music, venting, humor, etc.) |
 | 🌐 **AI Social Graph Analysis** | Maps relationships with confidence scores — close friend, romantic interest, group buddy, and more |
-| 📈 **Pattern & Behaviour Insights** | Detects trends, anomalies, sleep schedules, routine shifts, and availability windows |
-| 🔔 **Instant Alerts** | Discord webhook alerts with digest mode, fatigue protection, and composite conditions |
-| 📡 **Live Monitoring (REST + SSE)** | Stream events as they happen — Server-Sent Events for real-time UI updates |
-| 🔒 **Local-First + Private** | SQLite by default, optional Supabase sync — nothing leaves your system unless you configure it |
+| 📈 **Pattern & Behaviour Insights** | Detects trends, anomalies, sleep schedules, routine shifts, and availability windows — SQL-aggregated for speed |
+| 🔔 **Instant Alerts** | Discord webhook alerts with digest mode, fatigue protection, composite conditions, and server-side rule validation |
+| 📡 **Live Monitoring (REST + SSE)** | Stream events as they happen with `?since=<id>` replay across brief reconnects |
+| 🛡️ **API Hardening** | Bearer auth (constant-time compare), CORS allowlist, 300 req/min rate limit, `/health` liveness probe, generic error responses with `requestId` |
+| 📤 **Streaming NDJSON Export** | Multi-million-row exports via cursor — no OOM, no event-loop stalls |
+| 🔒 **Local-First + Private** | SQLite by default, optional Supabase sync with AES-256-GCM at-rest encryption for secrets — nothing leaves your system unless you configure it |
 
 ---
 
@@ -99,7 +102,8 @@ Type commands in any Discord channel. The command message is deleted **immediate
 | `$pause <@user>` | Suspend tracking, preserve history |
 | `$resume <@user>` | Re-activate a paused target |
 | `$label <@user> <text>` | Set a display label |
-| `$note <@user> <text>` | Append a timestamped note |
+| `$note <@user> <text>` | Append a timestamped note (capped at 4000 chars cumulative) |
+| `$tz <@user> [Area/City]` | Set or show the target's IANA timezone (defaults to UTC) |
 | `$status <@user>` | Current presence, platform & activities |
 | `$seen <@user>` | When the target was last online |
 | `$uptime <@user>` | Today's active time with progress bar |
