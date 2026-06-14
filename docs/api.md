@@ -74,6 +74,13 @@ List all monitored targets (active and inactive).
 
 `timezone` is an IANA identifier added in schema v7. Targets created before v7 (or POSTed without a `timezone` field) default to `"UTC"`. Drives every per-target hour/day analyser.
 
+`bootstrap_completed_at` is an epoch-ms timestamp added in schema v8. `null` while the initial profile fetch is pending; a number once the target is operational. While `null`, the selfbot:
+- suppresses `PROFILE_UPDATE` / `AVATAR_CHANGE` / `USERNAME_CHANGE` events
+- early-returns from alert evaluation for **every** rule type
+- returns an empty array from `detectAnomalies()`
+
+Targets created before v8 are auto-migrated to `bootstrap_completed_at = added_at` so they start operational. Fresh targets get flipped on the first successful `/users/{id}/profile` fetch — usually within seconds of the immediate post-add bootstrap call. A 30-min stuck-bootstrap sweep is the backstop.
+
 ---
 
 ### `POST /api/targets`
@@ -128,6 +135,24 @@ Use `null` to clear `label` or `notes`. Setting `active: false` pauses tracking 
 
 ---
 
+### `POST /api/targets/:userId/bootstrap/complete`
+Force-complete a stuck onboarding bootstrap. Idempotent — already-operational targets return 200 with the existing timestamp.
+
+Use this when the immediate post-add profile fetch failed (target has no mutual guilds AND the basic `/users/{id}` endpoint also failing) and you want alerts/anomalies to start flowing immediately rather than waiting for the 30-min sweep.
+
+**Response:**
+```json
+{
+  "success": true,
+  "bootstrap_completed_at": 1714680000000,
+  "wasAlreadyComplete": false
+}
+```
+
+`wasAlreadyComplete` is `true` when the target was already operational before this call. Returns `404` for unknown user IDs.
+
+---
+
 ## Current Status
 
 ### `GET /api/targets/:userId/status`
@@ -136,6 +161,7 @@ Get a target's current live state.
 **Response:**
 ```json
 {
+  "target": { ... },
   "presence": {
     "status": "dnd",
     "platform": "desktop",
@@ -145,9 +171,12 @@ Get a target's current live state.
     { "name": "Valorant", "type": 0, "details": "Competitive", "state": "In Game" }
   ],
   "voiceState": null,
-  "profileSnapshot": { "username": "...", "avatar_hash": "...", ... }
+  "profile": { "username": "...", "avatar_hash": "...", ... },
+  "isBootstrapping": false
 }
 ```
+
+`isBootstrapping` mirrors `target.bootstrap_completed_at == null` — surfaced separately so UIs don't have to re-derive. While `true`, alerts and anomaly surfacing for this target are suppressed.
 
 ---
 

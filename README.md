@@ -40,6 +40,7 @@ Sentinel is a **self-hosted Discord intelligence system** that turns raw activit
 | 🟢 **Real-Time Presence Tracking** | Event-driven via Discord's gateway op 14 — status and platform changes delivered instantly, including offline, with no polling lag |
 | 🧭 **Full Behavioural Tracking** | Presence, activities, messages, edits, deletions, voice, reactions, and interaction timelines |
 | 🌐 **Per-Target Timezone** | Sleep schedule, routine heatmap, baseline DOW metrics, and `UNUSUAL_HOUR` / `COMES_ONLINE after_hour` alerts all run in each target's own IANA timezone — set with `$tz` or in the dashboard |
+| 🚦 **Clean Onboarding Pipeline** | New targets pass through a bootstrap phase during which alerts + anomaly surfacing are suppressed. The first wave of incomplete profile/presence observations never becomes user-facing noise. Operational mode flips automatically on the first successful profile fetch (usually within seconds). |
 | 🖥️ **Self-Command System** | Manage tracking directly from Discord — messages delete instantly, no trace remains in the channel |
 | 🏷️ **AI Message Categorisation** | Instantly classifies messages into context-rich categories (gaming, music, venting, humor, etc.) |
 | 🌐 **AI Social Graph Analysis** | Maps relationships with confidence scores — close friend, romantic interest, group buddy, and more |

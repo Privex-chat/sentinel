@@ -148,6 +148,55 @@ handlePresenceUpdate()                  handleActivityUpdate()
 
 **Key property:** Offline detection fires when Discord pushes the PRESENCE_UPDATE, not when a poll cycle next runs. The gap is under a second.
 
+### Target Onboarding Pipeline
+
+Every new target goes through an explicit **bootstrap phase** before it's treated as operational. Without this, the first wave of profile / presence / activity observations after `$add` produces false-positive `PROFILE_UPDATE` events (null → value diffs from incomplete initial fetches) and noisy "unknown → offline" anomalies — exactly the artefacts an operator does NOT want to see in their first 30 seconds of tracking.
+
+```
+POST /api/targets  or  $add
+        │
+        ▼
+INSERT INTO targets (bootstrap_completed_at = NULL)
+        │
+        ├──► bootstrapTargetNow(userId)   (immediate, parallel)
+        │           │
+        │           ▼
+        │     GET /users/{id}/profile?with_mutual_guilds=true
+        │           │
+        │           ├─ 200 OK ──► profile + guild + account diffs
+        │           ├─ 404    ──► fallback to GET /users/{id}
+        │           └─ fail   ──► record failure, recurring poll retries
+        │
+        ├──► requestPresenceForUser(userId)  (after 5 s)
+        └──► startBackfillForTarget(userId)  (after 90 s, if enabled)
+
+        ┌─── Bootstrap phase  (bootstrap_completed_at IS NULL) ──┐
+        │                                                       │
+        │  Events ARE inserted (timeline keeps history) but:    │
+        │    • PROFILE_UPDATE / AVATAR_CHANGE /                 │
+        │      USERNAME_CHANGE events suppressed                │
+        │    • evaluateEvent() early-returns for every rule     │
+        │    • detectAnomalies() returns []                     │
+        │                                                       │
+        └───────────────────────────────────────────────────────┘
+        │
+        ▼
+First successful profile fetch (full OR basic-fallback)
+        │
+        ▼
+markBootstrapComplete()  →  bootstrap_completed_at = Date.now()
+        │
+        ▼
+Operational phase  — alerts evaluate, anomalies surface, profile
+                     events emit normally on real changes only.
+```
+
+**Backstop:** `closeStuckBootstraps()` runs on the daily-summary interval and force-completes any target whose `bootstrap_completed_at` is still NULL after 30 minutes. Logs a `warn` per swept target — investigate via the target-profile-poller failure counters.
+
+**Operator escape hatch:** `POST /api/targets/:userId/bootstrap/complete` lets the operator flip the target immediately. Idempotent.
+
+**Permanent root-cause fix:** the underlying null → value diff that triggered phantom `PROFILE_UPDATE` events is also addressed in `handleProfileUpdate` independently of the bootstrap flag. Every field comparison now requires BOTH old and new values to be non-null before counting as a change — so even after a snapshot DB restore or a re-add of a previously-removed userId, the first fresh fetch can never produce a false-positive change event.
+
 ### Self-Commands
 
 ```
@@ -231,7 +280,7 @@ All data lives in a single SQLite file (`sentinel.db`). Key tables:
 
 | Table | Purpose |
 |---|---|
-| `targets` | Tracked user IDs, labels, notes, priority, active flag, **`timezone`** (IANA, v7+) |
+| `targets` | Tracked user IDs, labels, notes, priority, active flag, **`timezone`** (IANA, v7+), **`bootstrap_completed_at`** (NULL = onboarding pending, v8+) |
 | `events` | Append-only log of every observed event with typed data |
 | `presence_sessions` | Open/closed status sessions with platform and duration |
 | `activity_sessions` | Game, Spotify, streaming, custom status sessions |
@@ -254,7 +303,7 @@ All data lives in a single SQLite file (`sentinel.db`). Key tables:
 | `sync_state` | Supabase sync watermarks |
 | `runtime_config` | Hot-reloadable settings (encrypted at rest with `SENTINEL_DATA_KEY`) |
 | `heartbeat_log` | Process health timestamps for stale-session recovery |
-| `schema_version` | Highest applied migration version (current: **7**) |
+| `schema_version` | Highest applied migration version (current: **8**) |
 
 SQLite is used instead of Postgres because Sentinel is a single-operator tool. WAL mode with a 64MB cache and 5-second `busy_timeout` handles tens of millions of rows comfortably with no separate database process, trivial backup (copy the file), and trivial deployment.
 
@@ -309,6 +358,8 @@ Full Supabase setup: [supabase.md](supabase.md)
 **Fastify over Express** — Lower per-request overhead, built-in schema validation, better TypeScript types. Measurably faster for the high-frequency status and timeline endpoints.
 
 **Browser fingerprint consistency** — The gateway IDENTIFY payload and REST headers (`User-Agent`, `X-Super-Properties`, `X-Discord-Locale`) use identical browser profile data, chosen once per process startup. This makes the selfbot's traffic indistinguishable from a real browser session. With `RANDOM_JITTER=true`, the profile is randomised per process restart across a pool of real browser fingerprints.
+
+**Target onboarding pipeline (bootstrap suppression)** — The initial fan-out of profile / presence / activity / voice events for a freshly added target is mostly first-observation artefacts: null → value profile diffs from incomplete fetches, `unknown → offline` presence transitions, and so on. Surfacing those as alerts or anomalies in the first 30 seconds of tracking buried real signals under noise. `targets.bootstrap_completed_at` is NULL while onboarding is in progress; during that window the alerts engine, anomaly detector, and PROFILE_UPDATE event emitter all early-return. The flag flips on the first successful profile fetch. A 30-min sweep is the backstop; an operator-triggered force-complete is the escape hatch. The underlying null → value diff bug is also fixed permanently in `handleProfileUpdate` (every field requires both old AND new to be non-null) so this can never produce phantom change events even outside of bootstrap (snapshot DB restore, re-add of a previously-removed userId, etc.).
 
 **Per-target IANA timezone** — Every hour/day-of-week analyser (sleep schedule, routine heatmap, behavioral baseline DOW computation, `UNUSUAL_HOUR` / `COMES_ONLINE after_hour` alerts, daily brief day labels) takes the target's timezone into account. The previous host-local-time approach silently produced wrong results on any selfbot host not running in UTC; v7+ stores the zone per target, defaulting to UTC for back-compat. Set on `POST /api/targets`, `PATCH /api/targets/:userId`, or via the `$tz` self-command.
 

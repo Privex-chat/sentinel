@@ -97,6 +97,12 @@ The Targets page supports search by username, display name, or label. The Timeli
 
 The Add Target form accepts an optional IANA timezone (defaults to the browser's detected zone, e.g. `America/New_York`). Sleep schedule, routine heatmap, and `UNUSUAL_HOUR` / `COMES_ONLINE after_hour` alert evaluation all run in that zone server-side. Edit it later from the target's settings or via the `$tz` self-command.
 
+### Onboarding Bootstrap
+
+Newly added targets show a small **"Bootstrapping…"** badge on the target card and an amber banner on the target detail page. While bootstrap is in progress (the initial `/users/{id}/profile` fetch hasn't landed yet), the selfbot server-side suppresses every alert evaluation and the `/insights/anomalies` endpoint returns an empty array for that target. This keeps the first wave of incomplete first-observation events out of the operator's feed.
+
+Bootstrap normally completes within seconds of adding the target. Click **"Skip wait"** in the banner to force-complete immediately (calls `POST /api/targets/:userId/bootstrap/complete`) — useful if the immediate fetch failed (e.g. no mutual guilds AND the basic `/users/{id}` fallback also failing) and you don't want to wait for the 30-minute backstop sweep.
+
 ### Streaming Export
 
 The full per-target export endpoint streams **NDJSON** (one row per line, framed by `_section` markers). The panel's `api.downloadExport(userId)` triggers a browser file-save without parsing megabytes of JSON on the main thread; `api.exportData(userId)` parses the stream into a `{ section: rows[] }` map for in-memory use. Multi-million-row exports complete without crashing the browser or the selfbot.

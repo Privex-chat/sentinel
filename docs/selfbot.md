@@ -265,7 +265,7 @@ npm run build
 pm2 restart sentinel-selfbot   # or restart however you run it
 ```
 
-Database migrations run automatically on startup — no manual steps needed. Current schema is **v7** (per-target `targets.timezone` column added). Upgrades from any prior version (v0–v6) are idempotent and apply in order.
+Database migrations run automatically on startup — no manual steps needed. Current schema is **v8** (per-target `targets.bootstrap_completed_at` column added — gates the new onboarding pipeline). v7 added `targets.timezone`. Upgrades from any prior version (v0–v7) are idempotent and apply in order. Existing targets are auto-migrated to operational state (`bootstrap_completed_at = added_at`) so no behaviour changes for already-tracked accounts.
 
 For `local+cloud` / `cloud` mode, mirror the new column to your Supabase project by running the latest `supabase-schema.sql` once — its `ALTER TABLE IF NOT EXISTS` clauses make a re-run harmless.
 

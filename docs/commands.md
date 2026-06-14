@@ -29,9 +29,12 @@ Add a new tracking target.
 
 - Validates the user ID format
 - Enforces a 15-minute rate limit between additions to avoid Discord account flags
+- Kicks off an **immediate bootstrap profile fetch** so alerts + anomalies become active within seconds rather than waiting for the next 5-min poll cycle
 - Starts presence subscription within 5 seconds (op 14 + REQUEST_GUILD_MEMBERS)
 - Starts historical message backfill if `BACKFILL_ENABLED=true`
 - If the target was previously removed and re-added, re-activates their record
+
+While the bootstrap profile fetch is pending, alerts + anomaly surfacing for this target are suppressed. Once the first fetch lands the target moves into operational mode automatically. A 30-min stuck-bootstrap sweep is the backstop; operators can force-complete sooner via the dashboard or `POST /api/targets/:userId/bootstrap/complete`.
 
 **Response TTL:** 4 s
 
